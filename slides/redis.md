@@ -41,7 +41,7 @@ Redis is written in ANSI C and works in monst POSIX systems like Linux, *BSD, OS
 
 ## Contents
 
-* Data structure (with range queries)
+* Data structure
 * Replication
 * LRU eviction
 * Transactions
@@ -50,7 +50,7 @@ Redis is written in ANSI C and works in monst POSIX systems like Linux, *BSD, OS
 
 ---
 
-## Data structure (with range queries)
+## Data structure
 
 * strings
 * hashes
@@ -126,11 +126,76 @@ The feature is currently considered experimental.
 
 ### Read-only slave
 
-Since Redis 2.6, slaves supprot a read-only mode that is enabled by default. This behavior is controlled by 
+Since Redis 2.6, slaves supprot a read-only mode that is enabled by default. This behavior is controlled by the slave-read-only option in the redis.conf file, and can be enabled and disabled at runtime using CONFIG SET.
+
+Read-only slaves will reject all write commands, so that it is not possible to write to a slave because of a mistake. This does not mean that the feature is intended to expose a slave instance to the internet or more generally to a network where untrusted clients exist, because administrative commands like DEBUG or CONFIG are still enabled. However, security of read-only instances can be improved by disabling commands in redis.conf using the rename-command directive.
+
+You may wonder why it is possible to revert the read-only setting and have slave instances that can be target of write operations. While those writes will be discarded if the slave and the master resynchronize or if the slave is restarted, there are a few legitimate use case for sorting ephemeral data in writable slaves. However in the future it is possible that this feature will be dropped.
 
 ---
 
 ## LRU eviction
+
+When Redis is used as a cache, sometimes it is handy to let it automatically evict old data as you add new one. This behavior is very well known in the community of developers, since it is default behavior of the popular memcached system.
+
+LRU is actually only one of the supported eviction methods. This page covers the more gemeral topic of the Redis maxmemory directive that is used in order to limit the memory usage to a fixed amount, and it also covers in depth the LRU algorithm used by Redis, that is actually an approximationm of exact LRU.
+
+---
+
+### Maxmemory configuration directive
+
+The maxmemory configuration directive is used in order to configure Redis to use a specified amount of memory for the data set. It is possible to set the configuration directive using the redis.conf file, or later using the CONFIG SET command at runtime.
+
+Setting maxmemory to zero results into no memory limits. This is default behavior for 64 bit systems, while 32 bit systems use an implicit memory limit of 3GB.
+
+When the specified amount of memory reached, it is posiible to select among different behaviors, called policies. Redis can just return errors for commands that could result in more memory being used, or it can evict some old data in order to return back to the specified limit every time new data is added.
+
+---
+
+### Eviction policies
+
+The exact behavior Redis follows when the maxmemory limit is reached is configured using the maxmeory-policy configuration directive.
+
+The following policies are available:
+
+* noeviction: return errors when the memory limit was reached and the client is trying to execute commands that could result in more memory to used (most write commands, but DEL and a few more exceptions).
+* allkeys-lru: evict keys trying to remove the less recently used (LRU) keys first, in order to make space for the new data added.
+* volatile-lru: evict keys trying to remove the less recently used (LRU) keys first, but only among keys that have an expire set, in order to make space for the new data added.
+* allkeys-random: evict random keys in order to make space for the new data added.
+* volatile-random: evict random keys in order to make space for the new data added, but only evict keys with an expire set.
+* volatile-ttl: In order to make space for the new data, evict only keys with an expire set, and try to evict keys with a shorter time to live (TTL) first.
+
+The policies volitale-lru, volatile-random and volatile-ttl behave like noeviction if there are no keys to evict matching the prerequisites.
+
+To pick the right eviction policy is important depending on the access pattern of your application, however you can reconfigure the policy at runtime while the application is running, and monitor the number of cache misses and hits using the Redis INFO output in order to tune your setup.
+
+In general as a rule of thumb:
+
+* Use allkleys-lru policy when you expect a power-law distribution in the popularity of your requests, that is, you expect that a subset of elements will be accessed far more often tha the rest. This is a good pick if you are unsure.
+* Use the allkeys-random if you have a cyclic access where all the keys are scanned continuously, or when you expect the distribution to be uniform (all elements likely accessed with the same probability).
+* Use volatile-ttl if you want to be able to provide hints to Redis about what are good candidate for expiration by using different TTL values when you create your cache objects.
+
+The allkeys-lru and volatile-random policies are mainly useful when you want to use a single instance for both caching and to have a set of persistent keys. However it is usually a better idea to run two Redis instances to solve such a problem.
+
+It is also worth to note that setting an expire to a key costs memory, so using a policy allkeys-lru is more memory efficient since there is no need to set an expire for the key to be evicted under memory pressure.
+
+---
+
+### How the eviction process works
+
+It is important to understand that the eviction process works like this:
+
+* A client runs a new command resulting in more data added.
+* Redis checks the memory usage, and if it is greater than the maxmemory limit, it evicts keys according the policy.
+* A new command is executed, and so forth.
+
+So we continuously cross the boundaries of the memoey limit, by going over it, and then by evicting keys to return back under the limit.
+
+If a command results in a lot of memory being used (like a big set intersection stored into a new key) for some time the memory limit can be surpassed by a noticeable amount.
+
+---
+
+### Approximated LRU algorithm
 
 ---
 
