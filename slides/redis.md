@@ -197,6 +197,14 @@ If a command results in a lot of memory being used (like a big set intersection 
 
 ### Approximated LRU algorithm
 
+Redis LRU algorithm is not an exact implementation. This means that Redis is not able to pick the best candidate for eviction, that is, the access that was accessed the most in the past. instead it will try to run an approximation of the LRU algolithm, by sampling a small number of keys, and evicting the one that is the best (with the oldest access time) among the sampled keys.
+
+However since Redis 3.0 the algorithm was improved to also take a pool of good candidates for eviction. This improved the performance, making it able to approximate more closely the behavior of a real LRU algorithm.
+
+What is important about the Redis LRU algorithm is that you are able to tune the precision of the algorithm by changing the number of samples to check for every eviction. This parameter is controlled by the following configuration directive:
+
+The reason why Redis does not use a true LRU implementation is because it costs more memory. However the approximation is virtually equivalent for the application using Redis. The following is a graphical comparison of how the LRU approximation used by Redis compares with true LRU.
+
 ---
 
 ## Transactions
