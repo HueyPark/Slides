@@ -1266,4 +1266,126 @@ We are about to create an example cluster deployment. Before to continue let's i
 
 ---
 
+## Redis latency problems troubleshooting
+
+This document will help you understand what the problem could be if you are experiencing latency problems with Redis.
+
+In this context latency is the maximum delay between the time a client issues a command and the time the reply to the command is received by the client. Usually Redis processing time is extremely low, in the sub microsecond range, but there are certain conditions leading to higher latency figures.
+
+### I've little time, give me the checklist
+
+The following documentation is very important in order to run Redis in a low latency fashion. However I understand that we are busy people, so let's start with a quick checklist. If you fail following these steps, please return here to read the full documentation.
+
+1. Make sure you are not running slow commands that are blocking the server. Use the Redis Slow Log feature to check this.
+2. For EC2 users, make sure you use HVM based modern EC2 instances, like m3.medium. Otherwise fork() is too slow.
+3. Transparent huge pages must be disabled from your kernel. Use echo never >/sys/kernel/mm/transparent_hugepage/enabled to disable them, and restart your Redis process.
+4. If you are using a virtual machine, it is possible that you have an intrinsic latency that has nothing to do with Redis. Check the minimum latency you can expect from your runtime environment using ./redis-cli --intrinsic-latency 100. Note: you need to run this command in the server not in the client. 
+5. Enable and use the Latency monitor feature of Redis in order to get a human readable description of the latency events and causes in yout Redis instance.
+
+In general, use the following table for durability VS latency/performance tradeoffs, orderd from stronger safety to better latency.
+
+1. AOF + fsync always: this is very slow, you should use it only if you know what you are doing.
+2. AOF + fsync every second: this is a good compromise.
+3. AOF + fsync every second + no-appendfsync-on-rewrite option set to yes: this is as the above, but avoids to fsync during rewrites to lower the disk pressure.
+4. AOF + fsync never. Fsyncing is up to the kernel in this setup, even less disk pressure and risk of letency spikes.
+5. RDB. Here you have a vast spectrum of tradeoffs depending on the save triggers you configure.
+
+And now for people with 15 minutes to spend, the details...
+
+### Measuring latency
+
+If you experiencing latency problems, probably you know how to measure it in context of your application, or maybe your latency problem is very evident even macroscopically. However redis-cli can be used to measure the latency of a Redis server in milliseconds, just try:
+
+redis-cli --latency -h `host` -p `port`
+
+### Using the internal Redis latency monitoring subsystem
+
+Since Redis 2.8.13, Redis provides latency monitoring capabilities that are able to sample different execution paths to understand where the server is blocking. This makes debugging of the problems illustrated in this documentation much simpler, so we suggest to enable latency monitoring ASAP. Please refer to the Latency monitor documentation.
+
+While the latency monitoring sampling and reporing capabilities will make simpler to understand the source of latency in your Redis systme, it is still advised that you read this documentation extensively to better understand the topic of Redis and latency spikes.
+
+### Latency baseline
+
+There is a kind of latency that is inherently part of the environment where you run Redis, that is the latency provided by your operating system kernel and, if you are using virtualization, by the hypervisor you are using.
+
+While this latency can't removed it is important to study it because it is the baseline, or in other words, you'll not be able to achieve a Redis latency that is better than the latency that every process running in your enviornment will experience because of the kernel or hypervisor implementation or setup.
+
+We call this kind of latency intrinsic latency, and redis-cli starting from Redis version 2.8.7 is able to measure it. This is an example run under Linux 3.11.0 running on an entry level server.
+
+Note: the argument 100 is the number of seconds the test will be executed. The more time we run the test, the more likely we'll be able to spot latency spikes. 100 seconds is usually appropriate, however you may want to perform a few runs at different times. Please note that the test is CPU intensuve and will likely saturate a single core in your system.
+
+```
+$ ./redis-cli --intrinsic-latency 100
+Max latency so far: 1 microseconds.
+Max latency so far: 16 microseconds.
+Max latency so far: 50 microseconds.
+Max latency so far: 53 microseconds.
+Max latency so far: 83 microseconds.
+Max latency so far: 115 microseconds.
+```
+
+Note: redis-cli in this special case needs to run in the server where you run or plan to run Redis, not in the client. In this special mode redis-cli does no connect to a Redis server at all: it will just try to measure the largest time the kernel does not provide CPU time to run to the redis-cli process itself.
+
+In the above example, the intrinsic latency of the system is just 0.115 milliseconds (or 115 microsecondes), which is a good news, however keep in mind that the intrinsic latency may change over time depending on the load of the system.
+
+Virtualized environments will not show so good numbers, especially with high load or if there are noisy neighbors. The following is a run on a Linode 4096 instance running Redis and Apache:
+
+```
+$ ./redis-cli -- intrinsic-latency 100
+Max latency so far: 573 microseconds.
+Max latency so far: 695 microseconds.
+Max latency so far: 919 microseconds.
+Max latency so far: 1606 microseconds.
+Max latency so far: 3191 microseconds.
+Max latency so far: 9243 microseconds.
+Max latency so far: 9671 microseconds.
+```
+
+Here we have an intrinsic latency of 9.7 milliseconds: this means that we can't ask better than that to Redis. However other runs at different times in different virtualization environments with higher load or with noisy neighbors can easily show eben worse values. We were able to measured up to 40 milliseconds in systems otherwise apparently running normally.
+
+### Latency induced by network and communication
+
+Clients connect to Redis using a TCP/IP connection or a Unix domain connection. The typical latency of a 1 Gbit/s network is about 2000 us, while the latency with a Unix domain socket can be as low as 30 us. It actually depends on your network and system hardware. On top of the communication itself, the system adds some more latency (due to thread scheduling, CPU caches, NUMA placement, etc ...). System induced latencies are significantly higher on virtualized environment than on a physical machine.
+
+The consequence is even if Redis processes most commands in sub microsecond range, a client performing many roundtrips to the server will have to pay for these network and system related latencies.
+
+An efficient client will therefore try to limit the number of roundtrips by pipelining several commands together. This is fully supported by the servers and most clients. Aggregated command like MSET, MGET can be also used for that purpose. Starting with Redis 2.4, a number of commands also support variadic parameters for all data types.
+
+Here are some guidelines:
+
+* If you can afford it, prefer a physical machine over a VM to host the server.
+* Do not systematically connect/disconnect to the server (especially true for web based applications). Keep your connections as long lived as possible.
+* If your client is on the same host than the server, use Unix domain sockets.
+* Prefer to use aggregated command (MSET/MGET), or commands with variadic parameteres (if possible) over pipelining.
+* Prefer to use pipelining (if possible) over sequence of roundtrips.
+* Redis supports Lua server-side svripting to cover cases that are not suitable for raw pipelining (for instance when the result of a command is an input for the following commands).
+
+On Linux, some people can achieve better latencies by playing with process placement (taskset), cgroups, real-time priorities (chrt), NUMA configuration (numactk), or by using a low-latency kernel, Please note vanilla Redis is not really suitable to be bound on a single CPU core. Redsi can fork background tasks that can be extremely CPU consuming like bgsave or AOF rewrite. These taks must never run on the smae core as the main event loop.
+
+In most situations, these kind of system level oprimizations are not needed. Only do them if you require them, and if you are familiar with them.
+
+### Single threaded nature of Redis
+
+Redis uses a mostly single threaded design. This means that a single process serves all the client requests, using a technique called multiplexing. This means that Redis can serve a single request in every given moment, so all the requests are served sequentially. This is very similar to how Node.js works as well.
+
+However, both products are often not perceived as being slow. This is caused in part by the small amount of time to complete a single request, but primarily because these products are designed to not block on system calls, such as reading data from or writing data to a socket.
+
+I said that Redis is mostly single threaded since actually from Redis 2.4 we use threads in Redis in order to perform some slow I/O operations in the background, mainly related to disk I/O, but this does not change the fact that Redis serves all the requests using a single thread.
+
+### Latency generated by slow commands
+
+A consequence of being single thread is that when a request is slow to serve all the other clients will wait for this request to be served. when executing normal commands, like GET or SET or LPUSH this it not a problem at all since this commands are executed in constant (and very small) time. However there are commands operating on many elements, like SORT, LREM, SUNION and others. For instance taking the intersection of two big sets can take a considerable amount of time.
+
+The algorithmic complexity of all commands is documented. A good practice is to systematically check it when using commands you are not familiar with.
+
+If you have latency concerns you should either not use slow commands against values composed of many elements, or you should run a replica using Redis replication where to run all your slow queries.
+
+It is possible to monitor slow commands using the Redis Slow Log Feature.
+
+Additionally, you can use your favorite per-process monitoring program (top, htop, prstat, etc ...) to quickly check the CPU consumption of the main Redis process. If it is high wile the traffic is not, it is usually a sign that slow commands are used.
+
+IMPORTAN NOTE: a VERY common source of latency generated by execution of slow commands is the use of the KEYS command in production environments. KEYS, as documented in the Redis documentation, should only be used for debugging purposes. Since Redis 2.8 a new commands were introduced in order to iterate the key space and othe large collections incrementally, please check the SCAN , SSCAN, HSCAN and ZSCAN commands for more information.
+
+---
+
 ## Best practice
