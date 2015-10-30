@@ -8,7 +8,7 @@
 * Data structures
 * Replication
 * LRU eviction
-* Transactions
+* Transaction
 * On-disk persistence
 * Best practice
 
@@ -16,85 +16,79 @@
 
 ## Redis란?
 
-in-memory data structure store
-used as database, cahce, message broker
-open source
+In-memory data structure store <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+
+Database, Cahce, Message broker로 사용 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+
+Open source <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ---
 
-Supprot data types
+### 기능
 
-* string
-* hash
-* list
-* set
-* sorted set
-
-* bitmaps
-* hyperloglog
-* geospatial index
+* Replication <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* Lua Scripting, Transaction <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* LRU eviction <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* On-disk persistence <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
+* High availability via Redis Sentinel <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
+* Automatic partitioning with Redis Cluster <!-- .element: class="fragment fade-in" data-fragment-index="6" -->
 
 ---
 
-Has
+### 특징
 
-* replication
-* Lua Scripting
-* LRU eviction
-* transaction
-* on-disk persistence
-* high availability via Redis Sentinel
-* automatic partitioning with Redis Cluster
-
----
-
-* Written in ANSI C
-* Works in most POSIX systems like Linux, BSD, OS X
-* No official support for Windows builds, but Microsoft develops and maintains a Win-64 port of Redis
+* ANSI C로 작성 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* Works in most POSIX systems like Linux, BSD, OS X <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* Windows 에 대한 공식 지원은 없음, 하지만 Win-64 port를 Microsoft에서 유지 중 <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ---
 
 ## Data structures
 
----
-
-### 개요
-
 Redis is not a plain key-value store
-Actually it is a data structures server, supproting different kind of values
-
-* String: Binary-safe
-* List: Basically linked list
-* Set: Collections of unique, unsorted string elements
-* Sorted set: Similar to Sets but, The elements are always taken sorted by their score
-* Hash: Which are maps composed of fields associated with values. Both the field and the value are strings
-* Bitmpas: Special commands, to handle String values like an array of bits
-* HyperLogLog: Probabilistic data structure which is used in order to estimate the cardinality of a set
+Actually it is a data structures server, supproting different kind of values <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
 ---
 
-### Redis Keys
+### 종류
 
-Redis Keys are binary safe, this means that you can use any binary sequence as a key, from a string like "foo" to the content of a JPEG file. The empty string is also a valid key
+* String <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* List <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* Set <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* Sorted set <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
+* Hash <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
 
 ---
 
-A few other rules about key
+### Redis Key
 
-* Very long keys are not a good idea, for instance a key of 1024 bytes is a bad idea not only memory-wise, but also because the lookup of the key in the dataset may several costly key-comparisons. Even when the task at hand is to match the existence of a large value, to resort to hashing it (for example woth SHA1) is better idea, especially from the point of view of memory and bandwidth.
-* Very short keys are often not a good idea. There is little point in writing "u1000flw" as a key if you can instead "user:1000:followers". The latter is more readable and the added space is minor compared to the space used by the key object itself and the value object.
-* Try to stick with a schema. For instance "object-type:id" is a good idea, as in "user:1000". Dots or dashes are often used for multi-word fields, as in "comment:1234:reply.to" or "comment:1234:reply-to".
-* The maximum allowed key size is 512 MB
+Binary safe (문자열 뿐만 아니라 JPEG 같은 이미지도 사용가능)
+
+empty key 허용됨
+
+---
+
+#### Key 사용시 주의사항
+
+* 매우 긴 Key는 나쁘다, 용량 뿐만 아니라 성능에도 영향을 줌
+* 매우 짧은 Key도 나쁘다, 키는 데이터를 설명할 수 있어야 함
+* 좋은 예: "user:1000", "comment:1234:reply.to" 또는 "comment:1234:reply-to"
+* 최대 허용 욜량: 512 MB
 
 ---
 
 ### Redis String
 
-The Redis String type is the simplest type of value you can associate with a Redis key. It is the only data type in Memcached, so it is also very natural for newcomers to use it in Redis.
+Key와 함께 사용할 수 있는 간단한 타입
+Memcached를 사용해 보았으면 아주 익숙하게 사용가능
+Binary safe
 
-Since Redis Keys are strings, when we use the string type as a value too, we are mapping a string to another string. The string data type is useful for a number of use cases, like caching HTML fragments or pages.
+Key가 String이기 때문에 String을 다른 String에 mapping 가능
+최대 허용 욜량: 512 MB
 
-Let's play a bit with the string type, using redis-cli (all the examples will be performed via redis-cli in this tutorial).
+---
+
+### Redis String Tutorial
 
 ```
 > SET mykey somevalue
@@ -103,20 +97,9 @@ OK
 "somevalue"
 ```
 
-As you can see using the SET and the GET commands are the way we set and retrieve a string value. Note that SET will replace any existing value already stored into the key, int the case that the key already exists, even if the key is associated with a non-string value. So SET performs an assignment.
+---
 
-Values can be strings (including binary data) of every kind, for instance yo can stroe a jpeg image inside a key. A value cant't be bigger than 512 MB.
-
-The SET command ha interesting options, that are provided as additional arguments. For example, I may ask SET to fail if the key already exists, or the opposite, that it only succeed if the key already exists:
-
-```
-> SET mykey newval NX
-(nil)
-> SET mykey newval XX
-OK
-```
-
-Even if strings are the basic values of Redis, there are interesting operations you can perform woth them. For instance, one is atomic increment:
+#### String이 Redis 기본 값이지만 추가적으로 흥미로운 COMMAND가 지원됨
 
 ```
 > SET counter 100
@@ -129,13 +112,11 @@ OK
 (integer) 152
 ```
 
-The INCR command parses the string value as an integer, increments it by one, and finally sets the obtained value as the new value. There are similar commands like INCRBY, DECR and DECRBY. Internally it's always the same command,acting in a slightly different way.
+---
 
-What does it mean that INCR is atomic? That even multiple clients issuing INCR against the same key will never enter into a ranc condition. FOR instance, it will never happen that client 1 reads "10", client 2 reads "10" at the same time, both increment to 11, and set the new value to 11. The final value will always be 12 and the read-increment-set operation is performed while all the other clients are not executing a command at the same time.
+#### MSET and MGET과 같은 COMMAND가 준비되어 있음
 
-THERE are a number of commands for operating on strings. For example the GETSET command sets a key to a new value, returning the old value as the result. You can use this command, for example, if you have a system that increments a Redis key using INCR every time  your web site receives a new visitor. You may want collect this information once every hour, without losing a single increment. You can GETSET the key, assigning it the new value of "0" and reading the old value back.
-
-The ability to set or retrieve the value of multiple keys in a single command is alos useful for reduced latency. For this reason there are the MSET and MGET commands:
+Latency 감소에 효과적
 
 ```
 > MSET a 10 b 20 c 30
@@ -146,17 +127,21 @@ OK
 3) "30"
 ```
 
-When MGET is used, Redis returns an array of values.
+MGET 이 사용되면 value의 배열을 return
 
-## Altering and querying the key space
+---
 
-There are commands that are not defined on particular types, but are useful in order to interact with the space of keys, and thus, can be used wuth keys of any type.
 
-For example the EXISTS command returns 1 or 0 to signal if a given key exists or not in the database, while the DEL command deletes a key and associated value, whatever the value is.
+#### Altering and querying the key space
+
+EXISTS, DEL과 같은
+모든 타입에 대한 변경 또는 질의를 위한 COMMAND가 제공됨
 
 ```
 > SET mykey hello
 OK
+> TYPE mykey
+// TODO: 타입 확인
 > EXISTS mykey
 (integer) 1
 > DEL mykey
@@ -165,20 +150,7 @@ OK
 (integer) 0
 ```
 
-From the examples you can also see how DEL itself returns 1 or 0 depending on whether the key was removed (it existed) or not (there was no such key with that name).
-
-There are many key space related commands, but the above two are the seeential ones together with the TYPE command, which returns the kind of value stored at the specified key:
-
-```
-> SET mykey x
-OK
-> TYPE mykey
-string
-> DEL mykey
-(integer) 1
-> TYPE mykey
-none
-```
+---
 
 ## Redis expires: keys with limited time to live
 
