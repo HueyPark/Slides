@@ -2,46 +2,10 @@
 
 ---
 
-## Introduction
-
-Redis is an open source, In-memory data structure store, used as database, cache and message broker. It supports data structures such as strings, hashes, lists, sets, sorted sets with range queries, bitmaps, hyperloglogs and geospatial indexes with radius queries. Redis has built-in replication, Lua scripting, LRU eviction, transactions and different levels of on-disk persistence, and provides high availability via Redis Sentinel and automatic partitioning with Redis Cluster.
-
----
-
-You can run atomic operations on these types, like appending to a string; increamenting the value in a hash; pushing an element to a list; computing set intersection, union and difference; or getting the member with highest ranking in a sorted set.
-
----
-
-In order to achieve its outstanding performance, Redis works with an in-memory dataset. Depending on your use case, you can persist it either by dumping th dataset to disk every once in a while, or by appending each command to a log. Persistence can be optionally disabled, if you just need a feature-rich, networked, in-memory cache.
-
----
-
-Redis also supprots trivial-to-setup marster-slave asynchronous replication, with very fast non-blocking first synchronization, auto-reconnection with partial resynchronization on net split.
-
----
-
-## Other features include:
-
-* Transactions
-* Pub/Sub
-* Lua scripting
-* Keys with a limited time-to-live
-* LRU eviction of keys
-* Automatic failover
-
----
-
-You can use Redis from most programming languages out there.
-
----
-
-Redis is written in ANSI C and works in monst POSIX systems like Linux, *BSD, OS X without external dependencies. Linux and OS X are the two operating systems where Redis is developed and more tested, and we recommend using Linux for deploying. Redis may work in Solaris-derived systems like SmartOS, but suport is best effort. There is no official support for Windows builds, but Microsoft develops and maintains a Win-64 port of Redis.
-
----
-
 ## Contents
 
-* Data structure
+* Redis란?
+* Data structures
 * Replication
 * LRU eviction
 * Transactions
@@ -50,36 +14,81 @@ Redis is written in ANSI C and works in monst POSIX systems like Linux, *BSD, OS
 
 ---
 
-## Data structure
+## Redis란?
 
-## An introduction to Redis data types and abstractions
+in-memory data structure store
+used as database, cahce, message broker
+open source
 
-Redis is not a plain key-value store, actually it is a data structures server, supporting different kind of values. What this means is that, while in traditional key-value stores you associated string keys to string values, in Redis the value is not limited to a simple string, but can also hold more complex data structures. The following is the list of all the data structures supported by Redis, which will be covered separately in this tutorial:
+---
 
-* Binary-safe strings.
-* List: collections of string elements sorted according to the order of insertion. They are basically linked lists.
-* Sets: collections of unique, unsorted string elements.
-* Sorted sets, similar to Sets but where every string element is associated to a floating number value, called score. The elements are always taken sorted by their score, so unlike Sets it is possible to retrieve a range of elements (for example you may ask: give me the top 10, or the bottom 10).
-* Hashes, which are maps composed of fields associated with values. Both the field and the value are strings. This is very similar to Ruby or Python hashes.
-* Bit arrays (or simply bitmaps): It is possible, using special commands, to handle String values like an array of bits: you can set and clear individual bits, count all the bits set to 1, find the first set or unset bit, and so forth.
-* HyperLogLogs: this is probabilistic data structure which is used in order to estimate the cardinality of a set. Don't be scared, it is simpler then it seems... See later in HyperLogLog section of this tutorial.
+Supprot data types
 
-It's not always trivial to grasp how these data types work and what to use in order to solve a given problem from the command reference, so this document is a crash course to Redis data types and their most common patterns.
+* string
+* hash
+* list
+* set
+* sorted set
 
-For all the examples we'll use the redis-cli utility, that's a simple but handy command line utility to issue commands against the Redis server.
+* bitmaps
+* hyperloglog
+* geospatial index
 
-## Redis Keys
+---
 
-Redis Keys are binary safe, this means that you can use any binary sequence as a key, from a string like "foo" to the content of a JPEG file. The empty string is also a valid key.
+Has
 
-A few other rules about keys:
+* replication
+* Lua Scripting
+* LRU eviction
+* transaction
+* on-disk persistence
+* high availability via Redis Sentinel
+* automatic partitioning with Redis Cluster
+
+---
+
+* Written in ANSI C
+* Works in most POSIX systems like Linux, BSD, OS X
+* No official support for Windows builds, but Microsoft develops and maintains a Win-64 port of Redis
+
+---
+
+## Data structures
+
+---
+
+### 개요
+
+Redis is not a plain key-value store
+Actually it is a data structures server, supproting different kind of values
+
+* String: Binary-safe
+* List: Basically linked list
+* Set: Collections of unique, unsorted string elements
+* Sorted set: Similar to Sets but, The elements are always taken sorted by their score
+* Hash: Which are maps composed of fields associated with values. Both the field and the value are strings
+* Bitmpas: Special commands, to handle String values like an array of bits
+* HyperLogLog: Probabilistic data structure which is used in order to estimate the cardinality of a set
+
+---
+
+### Redis Keys
+
+Redis Keys are binary safe, this means that you can use any binary sequence as a key, from a string like "foo" to the content of a JPEG file. The empty string is also a valid key
+
+---
+
+A few other rules about key
 
 * Very long keys are not a good idea, for instance a key of 1024 bytes is a bad idea not only memory-wise, but also because the lookup of the key in the dataset may several costly key-comparisons. Even when the task at hand is to match the existence of a large value, to resort to hashing it (for example woth SHA1) is better idea, especially from the point of view of memory and bandwidth.
-* Very short keys are often not a good idea. There is little point in writing "u1000flw" as a key if you can instead "user:1000:followers". The latter is more readable and the added space is minor compared to the space used vy the key object itself and the value object. While short keys will obviously consume a bit less memory, your job is to find the right balance.
+* Very short keys are often not a good idea. There is little point in writing "u1000flw" as a key if you can instead "user:1000:followers". The latter is more readable and the added space is minor compared to the space used by the key object itself and the value object.
 * Try to stick with a schema. For instance "object-type:id" is a good idea, as in "user:1000". Dots or dashes are often used for multi-word fields, as in "comment:1234:reply.to" or "comment:1234:reply-to".
-* The maximum allowed key size is 512 MB.
+* The maximum allowed key size is 512 MB
 
-## Redis Strings
+---
+
+### Redis String
 
 The Redis String type is the simplest type of value you can associate with a Redis key. It is the only data type in Memcached, so it is also very natural for newcomers to use it in Redis.
 
