@@ -131,7 +131,6 @@ MGET 이 사용되면 value의 배열을 return
 
 ---
 
-
 #### Altering and querying the key space
 
 EXISTS, DEL과 같은
@@ -152,17 +151,20 @@ OK
 
 ---
 
-## Redis expires: keys with limited time to live
+#### Redis Expire: keys with limited time to live
 
-Before continuing with more complex data structures, we need to discuss another feature which works regardless of the value type, and is called Redis expires. Basically you can set a timeout for a key, which is a limited time to live. When the time to live elapses, the key is automatically destroyed, exactly as if the user called the DEL command with the key.
+Key에 timeout을 설정하여 일정 기간동안만 사용가능하게 설정 가능
 
-A few quick info about Redis expires:
+---
 
-* They can be set both using seconds or milliseconds precision.
-* However the expire time resolution is always 1 millisecond.
-* Information about expires are replicated and persisted on disk, the time virtually passes when your Redis server remains stopped (this means that Redis saves the date at which a key will expire).
+#### Redos Expire 특징
 
-Setting a expire is trivial:
+* seconds, millisecons 두 종류의 정밀도 사용가능
+* On-disk persistence를 사용할 경우 Redis server가 중지되어 있던 시간은 계산되지 않음 (Redis가 유효기간이 지난 Key를 가지고 있을 수 있음)
+
+---
+
+#### Redos Expire Tutorial (1/2)
 
 ```
 > SET key some-value
@@ -175,7 +177,9 @@ OK
 (nil)
 ```
 
-The key vanished between the two GET calls, since the second call was delayed more than 5 seconds. In the example above we use EXPIRE in order to set the expire (it can also be used in order to set a different expire to a key already having one, like PERSIST can be used in order to remove the expire and make the key persistent forever). However we can also create keys with expires using other Redis commands. For example using SET options:
+---
+
+#### Redos Expire Tutorial (2/2)
 
 ```
 > SET key 100 EX 10
@@ -184,27 +188,18 @@ OK
 (integer) 9
 ```
 
-The example above sets a key with the string value 100, having an expire of ten seconds. Later the TTL command is called in order to check the remaning time to live for the key.
+---
 
-In order to set and check expires in milliseconds, check the PEXPIRE and the PTTL commands, and the full list of SET options.
+### Redis List
 
-## Redis Lists
+Redis List는 Linked List를 기반으로 구현되어 있음
+따라서 Linked List의 특성을 동일하게 가짐
+* element를 앞 또는 뒤에 추가할 경우 유리
+* index를 data에 접근할 경우 불리 
 
-To explain the List data type it's better to start with a little bit of theory, as the term List is often used in an improper way by information technology folks. For instance "Python Lists" are not what the name may suggest (Linked Lists), but rather Arrays (the same data type is called Array in Ruby actually).
+---
 
-From a very general point of view a List is just a sequence of ordered elements: 10, 20, 1, 2, 3 is a list. But the properties of a List implemented using Array are very different from the properties of a List implemented using a Linked List.
-
-Redis Lists are implemented via Linked Lists. This means that even if you have millions of elements inside a list, the operation of addinf a new element in the head or in the tail of the list is performed in constant time. The speed of adding a new element with the LPUSH command to the head of a list with ten elements is the same as adding an element to the head of list with 10 million elements.
-
-What's the downside? Accessing an element by index is very fast in lists implemented with an Array (constant time indexed access) and not so fast in lists implemented by linked lists (where the operation requires an amount of work proportional to the index of the accessed element).
-
-Redis Lists are implemented with linked lists because for a database system it is crucial to be able to add elements to a very long list in a very fast way. Another strong advantage, as you will see in a moment, is that Redis Lists can be taken at constant length in constant time.
-
-When fast access to the middle of a large collection of elements is important, there is a different data structure that can be used, called sorted sets. Sorted sets will be covered later in this tutorial.
-
-## First steps with Redis Lists
-
-The LPUSH command adds a new element into a list, on the left (at the head), while the RPUSH command adds a new element into a list, on the right (at the tail). Finally the LRANGE command extracts ranges of elements from lists:
+#### Redis List Tutorial (1/3)
 
 ```
 > RPUSH myslist A
@@ -219,11 +214,11 @@ The LPUSH command adds a new element into a list, on the left (at the head), whi
 3) "B"
 ```
 
-Note that LRANGE takes two indexws, the first element of the range to return. Both the indexes can be negative, telling Redis to start counting from the end: so - 1 is the last element, -2 is the penultimate element of the list, an so forth.
+Note that LRANGE takes two indexws, the first element of the range to return. Both the indexes can be negative, telling Redis to start counting from the end: so - 1 is the last element, -2 is the penultimate element of the list, an so forth
 
-As you can see RPUSH appended the elements on the right of the list, while the final LPUSH appended the element on the left.
+---
 
-Both commands are variadic commands, meaning that you are free to push multiple elements into a list in a single call:
+#### Redis List Tutorial (2/3)
 
 ```
 > RPUSH mylist 1 2 3 4 5 "foo bar"
@@ -240,7 +235,9 @@ Both commands are variadic commands, meaning that you are free to push multiple 
 9) "foo bar"
 ```
 
-An important operation defined on Redis lists is the ability to pop elements. Popping elements is the operation of both retrieving the element from the list, and eliminating it from the list, at the same time. You can pop elements from left and right, similarly to how you can push elements in both sides of the list:
+---
+
+#### Redis List Tutorial (3/3)
 
 ```
 > RPUSH mylist a b c
@@ -251,42 +248,28 @@ An important operation defined on Redis lists is the ability to pop elements. Po
 "c"
 > RPOP mylist
 "a"
-```
-
-We added three elements and popped three elements, so at the end of this sequence of commands the list is empty and there are no more elements to pop. If we try to pop yet another element, this is the result we get:
-
-```
-RPOP mylist
+> RPOP mylist
 (nil)
 ```
 
-Redis returned a NULL value to signal that there are no elements into the list.
+---
 
-## Common use cases for lists
+#### Redis List를 사용하면 좋은 경우
 
-Lists are useful for a number of tasks, two very representative use cases are the following:
+* 유저의 마지막 행동을 알아야 할 필요가 있을 때
+* consumer-producer pattern을 사용해서 Process 간의 통신힐 때
 
-* Remember the latest updates posted by users into a social network.
-* Communication between processes, using a consumer-producer pattern where the producer pushes items into a list, and a consumer (usually a worker) consumes those items and executed actions. Redis has special list commands to make this use case both more reliable and efficient.
+* Twitter에서 최근 Twitt을 가져오기 위해 사용 중
 
-For example both popular Ruby libraries resque and sidekiq use Redis lists under the hood in order to implement background jobs.
+---
 
-The popular Twitter social network takes the latest tweets posted by users into Redis lists.
+#### Capped list
 
-To describe a common use case step by step, imagine your home page shows the latest photos published in a photo sharding social network and you want to speedup access.
+최근 몇 개의 element만 남기고 나머지를 list에서 제거하고 싶을 때 사용
 
-* Every time a user posts a new photo, we add its ID into list with LPUSH.
-* When users visit the home page, we use LRANGE 0 9 in order to get the latest 10 posted items.
+---
 
-## Capped lists
-
-In maby use cases we just want to use lists to store the latest items, whatever they are: social network updates, logs, or anything else.
-
-Redis allows us to use lists as a capped collection, only remembering the latest N items and discarding all the oldest items using the LTRIM command.
-
-The LTRIM command is similar to LRANGE, but instead of displaying the specified range of elements it sets this range as the new list value. All the elements outside the given range are removed.
-
-An example will make it more clear:
+#### Capped list Tutorial (1/2)
 
 ```
 > RPUSH mylist 1 2 3 4 5
@@ -299,55 +282,65 @@ OK
 3) "3"
 ```
 
-The above LTRIM command tells Redis to take just list elements from index 0 to 2, everything else will be discarded. This allows for a very simple but useful pattern: doing a List push operation + a List trim operation together in order to add a new element and discard elements exceeding a limit:
+---
+
+#### Capped list Tutorial (2/2)
 
 ```
-LPUSH mylist <come element>
+LPUSH mylist elements...
 LTRIM mylist 0 999
 ```
 
-The above combination adds a new element and takes only the 1000 newest elements into the list. With LRANGE you can access the top items without any need to remeber very old data.
+---
 
-Note: while LRANGE is technically an O(N) command, accessing small ranges towards the head or the tail of the list is a constant time operation.
+#### Blocking operations on lists
 
-## Blocking operations on lists
+List의 blocking opertation을 이용해서 producer-consumer pattern을 구현할 수 있음
 
-Lists have a special feature that make them suitable to implement queues, and in general as a building block for inter process communication systems: blocking operaions.
+---
 
-Image you want to push items into a list with one process, and use a different process in order to actually do some kind of work with those items. This is the usual producer / consumer setup, and can be implemented in the following simple way:
+##### producer-consumer polling을 통한 구현
 
-* To push items into the list, producers call LPUSH.
-* To extract / process items from the list, consumers call PROP.
+1. To push items into the list, producers call LPUSH
+2. To extract / process items from the list, consumers call RPOP
+3. RPOP 시점에 data가 없으면 일정시간 대기후 재요청함
 
-However it is possible that sometimes the list is empty and there is nothing to process, so RPOP just returns NULL. In this case a consumer is forced to wait some time and retry again with RPOP. This is called polling, and is not a good idea in this context because it has several drawbacks:
+---
 
-1. Forces Redis and clients to process useless commands (all the requests when the list is empty will get no actual work done, they'll just return NULL).
-2. Adds a delay to the processing of items, since after a worker receives a NULL, it waits some time. To make the delay smaller, we could wait less between calls to RPOP, with the effect of amplifying problem number 1, i.e. more useless calls to Redis.
+##### producer-consumer polling을 통한 구현의 문제점
 
-So Redis implements commands called BRPOP and BLPOP which are versions of RPOP and LPOP able to block if the list is empty: they'll return to the caller only when a new element is added to the list, or when a user-specified timeout is reached.
+1. Redis와 Client에게 불필요한 요청을 강제함
+2. 요청 시점에 데이터가 없으면 일정시간 대기 후 재요청하는 방식이므로 요청간 딜레이가 생김
 
-This is an example of a BRPOP call we could use in the worker:
+---
+
+##### Blocking operations on lists
+
+BRPOP, BLPOP을 사용하여 POP COMMAND를 blocking 하게 사용할 수 있음
+
+---
+
+##### Blocking operations on lists Tutorial
 
 ```
 > BRPOP tasks 5
-1) "tasks"
-2) "do_something"
 ```
 
-It means: "wait for elements in the list tasks, but return if after 5 seconds no element is available".
+element가 없어도 5초간 대기하겠음
 
-Note that you can use 0 as timeout to wait for elements forever, and you can also specify multiple lists and not just one, in order to wait on multiple list as the same time, and get notified when the first list receives an element.
+만약 timeout을 0으로 입력하면 영원히 대기함
 
-A few things to note about BRPOP:
+---
 
-1. Clients are served in an ordered way: the first client that blocked waiting for a list, is served first when an element is pushed by some ohter client, and so forth.
-2. The return value is different compared to RPOP: it is a two-element array since it also includes the name of the key, because BRPOP and BLPOP are able to block waiting for elements from multiple lists.
-3. If the timeout is reached, NULL is returned.
+##### Blocking operations 특징
 
-There are more things you should know about lists and blocking ops. We suggest that you read more on the following:
+* 여러 Client가 요청했을 경우 먼저 요청한 Client가 먼저 응답을 받음
+* return value에 key가 포함되어 있음
+* timeout이 되면 NULL이 반환됨
 
-* It is possible to build safer queues or rotating queues using RPOPLPUSH.
-* There is also a blocking variant of the command, called BRPOPLPUSH.
+RPOPLPUSH, BRPOPLPUSH 이런 친구들도 있습니다 
+
+---
 
 ## Automatic creation and removal of keys
 
