@@ -342,17 +342,18 @@ RPOPLPUSH, BRPOPLPUSH 이런 친구들도 있습니다
 
 ---
 
-## Automatic creation and removal of keys
+### Key의 생성과 삭제의 자동화
 
-So far in our examples we never had to create empty lists before pushing elements, or removing empty lists when they no longer have elements inside. It is Redis' responsibility to delete keys when lists are left empty, or to create an empty list if the key does not exist and we are trying to add elements to it, for example, with LPUSH.
+빈 Key에 대해 PUSH 또는 POP을 명령하면 Key가 자동으로 생성 및 삭제됨
 
-This is not specific to lists, it applies to all the Redis data types composed of multiple elements -- Sets, Sorted Sets and Hashes.
+이는 List 뿐만 아니라 Set, Sorted Set, Hash에도 동일하게 적용되며 아래의 규칙을 따름
+* Element를 추가할 때 아직 target key가 없으면 해당 data type을 생성함
+* Element를 삭제할 때 data 모두 없어지면 자동으로 data type을 삭제함
+* Read-only COMMAND를 사용하거나 없는 Key에 대해 삭제 명령을 내리면 비어있는 data type에 적용한 것과 동일한 행동을 함 !!확인 필요!!
 
-Basically we can summarize the behavior with three rules:
+---
 
-1. When we add an element to an aggregate data type, if the target key does not exist, an empty aggregate data type is created before adding the element.
-2. When we remove elements from an aggregate data type, if the value remains empty, the key is automatically destroyed.
-3. Calling a read-only command such as LLEN (which returns the length of the list), or a write command removing elements, with an empty key, always produces the same result as if the key is holding an empty aggregate type of the type the command expects to find.
+### Key의 생성과 삭제의 자동화 Tutorial (1/4)
 
 ```
 > DEL mylist
@@ -360,8 +361,11 @@ Basically we can summarize the behavior with three rules:
 > LPUSH mylist 1 2 3
 (integer) 3
 ```
+---
 
-However we can't preform operations against the wrong type of the key exists:
+### Key의 생성과 삭제의 자동화 Tutorial (2/4)
+
+다른 타입에 대한 시도는 error를 발생시킴
 
 ```
 > SET foo bar
@@ -372,7 +376,9 @@ OK
 string
 ```
 
-Example of rule 2:
+---
+
+### Key의 생성과 삭제의 자동화 Tutorial (3/4)
 
 ```
 > LPUSH mylist 1 2 3
@@ -389,9 +395,9 @@ Example of rule 2:
 (integer) 0
 ```
 
-The key no longer exists after all the elements are popped.
+---
 
-Example of rule 3:
+### Key의 생성과 삭제의 자동화 Tutorial (4/4)
 
 ```
 > DEL mylist
@@ -401,6 +407,8 @@ Example of rule 3:
 > LPOP mylist
 (nil)
 ```
+
+---
 
 ## Redis Hashes
 
