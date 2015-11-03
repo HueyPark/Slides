@@ -157,14 +157,14 @@ Key에 timeout을 설정하여 일정 기간동안만 사용가능하게 설정 
 
 ---
 
-#### Redos Expire 특징
+#### Redis Expire 특징
 
 * seconds, millisecons 두 종류의 정밀도 사용가능
 * On-disk persistence를 사용할 경우 Redis server가 중지되어 있던 시간은 계산되지 않음 (Redis가 유효기간이 지난 Key를 가지고 있을 수 있음)
 
 ---
 
-#### Redos Expire Tutorial (1/2)
+#### Redis Expire Tutorial (1/2)
 
 ```
 > SET key some-value
@@ -179,7 +179,7 @@ OK
 
 ---
 
-#### Redos Expire Tutorial (2/2)
+#### Redis Expire Tutorial (2/2)
 
 ```
 > SET key 100 EX 10
@@ -410,9 +410,20 @@ string
 
 ---
 
-## Redis Hashes
+## Redis Hash
 
-Redis hashes look exactly how one might expect a "hash" to look, with field-value pairs:
+Redis hash는 당신이 생각하는 그 "hash"임
+field-value pair로 구성되어 있음
+
+---
+
+### Redis Hash Tutorial 특징
+
+Redis Hash는 오브젝트를 나타내기 편하며, Hash에 저장할수 있는 인자의 수에는 제한이 없음
+
+---
+
+### Redis Hash Tutorial
 
 ```
 > HMSET user:1000 username antirez birthyear 1977 verified 1
@@ -430,33 +441,16 @@ OK
 6) "1"
 ```
 
-While hashes are handy to represent objects, actually the number of fields you can put inside a hash has no practical limits (other thean available memory), so you can use hashes in many different ways inside your application.
+---
 
-The command HMSET sets multiple fields of the hash, while HGET retrieves a single field. HMGET is similar to HGET but returns an array values:
+## Redis Set
 
-```
-> HMGET user:1000 username birthyear no-such-field
-1) "antirez"
-2) "1977"
-3) (nil)
-```
+정렬되지 않은 Redis String의 집합
+Set 안의 인자가 하나임을 보장함
 
-There are commands that are able to perform operations on individual fields as well, like HINCRBY:
+---
 
-```
-> HINCRBY user:1000 birthyear 10
-(integer) 1987
-> HINCRBY user:1000 birthyear 10
-(integer) 1997
-```
-
-You can find the full list of hash commands in the documentation.
-
-It is worth nothing that small hashes (i.e., a few elements with small values) are encoded in special way in memory that make them very memory efficient.
-
-## Redis Sets
-
-Redis Sets are unordered collections of strings. The SADD command adds new elements to a set. It's also possible to do a number of other operations against sets like testing if a given element already exists, performing the intersection, union or difference between multiple sets, and so forth.
+### Redis Set Tutorial
 
 ```
 > SADD myset 1 2 3
@@ -467,9 +461,9 @@ Redis Sets are unordered collections of strings. The SADD command adds new eleme
 3. 2
 ```
 
-Here I've added three elements to my set and told Redis to return all the elements. As you can see they are not sorted -- Redis is free to return the elements in any order at every call, since there is no contract with the user about element ordering.
+---
 
-Redis has commands to test for membership. Does a given element exist?
+### Redis Set Tutorial
 
 ```
 > SISMEMBER myset 3
@@ -478,54 +472,9 @@ Redis has commands to test for membership. Does a given element exist?
 (integer) 0
 ```
 
-"3" is a member of the set, while "30" is not.
+---
 
-Sets are good for expressing relations between objects. For instance we can easily use sets in order to implement tags.
-
-A simple way to model this problem is to have a set for every object we want to tag. The set contains the IDs of the tags associated with the object.
-
-Imagine we want to tag news. If our news ID 1000 is tagged with tags 1, 2, 5 and 77, we can have one set associating our tag IDs with the news ite:
-
-```
-> SADD news:1000:tags 1 2 5 77
-(integer) 4
-```
-
-However sometimes I may want to have inverse relation as well: the list of all the news tagged with a given tag:
-
-```
-> SADD tag:1:news 1000
-(integer) 1
-> SADD tag:2:news 1000
-(integer) 1
-> SADD tag:5:news 1000
-(integer) 1
-> SADD tag:77:news 1000
-(integer) 1
-```
-
-To get all the tags for a given object is trivial:
-
-```
-> SMEMBERS news:1000:tags
-1. 5
-2. 1
-3. 77
-4. 2
-```
-
-Note: in the example we assume you have another data structure, for example a Redis hash, which maps tag IDs to tag names.
-
-There are other non trivial operations that are still easy to implement using the right Redis commands. For instance we may want a list of all the objects with the tags 1, 2, 10 and 27 together. We can do this using the SINTER command, which performs the intersection between different sets. We can use:
-
-```
-> SINTER tag:1:news tag:2:news tag:10:news tag:27:news
-... results here ...
-```
-
-Intersection is not the only operation performed, you can also perform unions, difference, extract a random element, and so forth.
-
-The command to extract an element is called SPOP, and is handy to model certain problems. For example in order to implement a web-based poker game, you may want to represent your deck with a set. Imagine we use a one-char prefix for (C)lubs, (D)iamonds, (H)earts, (S)pades:
+### Redis Set Tutorial
 
 ```
 > SADD deck C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 CJ CQ CK
@@ -535,18 +484,19 @@ The command to extract an element is called SPOP, and is handy to model certain 
   (integer) 52
 ```
 
-Now we want to provide each player with 5 cards The SPOP command removes a random element, returning it to the client, so it is the perfect operation in this case.
+---
 
-However if we call it against our deck directly, in the next play of the game we'll need to populate the deck of cards again, which may not be ideal. So to start, we can make a copy of the set stored in the deck key into th game:1:deck key.
-
-This is accomplished using SUNIONSTORE, which normally performs the union between multiple sets, and stroes the result into another set. However, since the union of a single set is itself, I can copy my deck with:
+### Redis Set Tutorial
 
 ```
 > SUNIONSTORE game:1:deck deck
 (integer) 52
+
 ```
 
-Now I'm ready to provide the first player with five cards:
+---
+
+### Redis Set Tutorial
 
 ```
 > SPOP game:1:deck
@@ -561,31 +511,29 @@ Now I'm ready to provide the first player with five cards:
 "SJ"
 ```
 
-One pair of jacks, not great...
+---
 
-Now it's a good time to introduce the set command that provides the number of elements inside a set. This is often called the cardinality of a set in the context of set theory, so the Redis command is callled SCARD.
+### Redis Set Tutorial
 
 ```
 > SCARD game:1:deck
 (integer) 47
 ```
 
-The math works: 52 - 5 = 47.
+---
 
-When you need to just get random elements without removing them from the set, there is the SRANDMEMBER command suitable for the task. It als features the ability to return both repeating and non-repeating elements.
+## Redis Sorted set
 
-## Redis Sorted sets
+Sorted set 정렬이 되어있는 Set임
+인자들은 score라고 불리는 부동소수점 값을 가지며 이를 기준으로 정렬됨
 
-Sorted sets are a data type which is similar to a mix between a Set and a Hash. Like sets, sorted sets are composed of unique, non-repeating string elements, so in some sense a sorted set is a set as well.
+정렬 기준
+* A와 B의 score가 다르면 score 순으로 정렬
+* A와 B의 score가 동일하면 key string 기준으로 정렬
 
-However while elements inside sets are not ordered, every elements in a sorted set is associated with a floating point value, called the score (this is the type is also similar to a hash, since every element is mapped to a value).
+---
 
-Moreover, elements in a sorted sets are taken in order (so they are not ordered on request, order is a peculiarity of the data structure used to represent sorted sets). They are ordered according to the following rule:
-
-* If A and B are two elements with a different score, then A > B if A.score is B.score
-* If A and B have exactly same score, then A > B if the A string is lexicographically greater than the B string. A and B strings can't be equal since sorted sets only have unique elements.
-
-Let's start with a simple example, adding a few selected hackers names as sorted set elements, with their year of birth as "score".
+### Redis Sorted set Tutorial
 
 ```
 > ZADD hackers 1940 "Alan Kay"
@@ -608,7 +556,9 @@ Let's start with a simple example, adding a few selected hackers names as sorted
 (integer) 1
 ```
 
-As you can see ZADD is similar to SADD, but takes one additional argument (placed before the element to be added) which is the score. ZADD is also variadic, so you are free to specify multiple score-value pairs, even if this is not used in the example above.
+---
+
+### Redis Sorted set Tutorial
 
 ```
 > ZRANGE hackers 0 -1
@@ -623,9 +573,9 @@ As you can see ZADD is similar to SADD, but takes one additional argument (place
 9) "Linus Torvalds"
 ```
 
-Note: 0 and -1 means from element index 0 to the last element (-1 works here just as it does in the case of the LRANGE command).
+---
 
-What if I want to order them the opposite way, youngest to oldest? Use ZREVRANGE instead of ZRANGE:
+### Redis Sorted set Tutorial
 
 ```
 > ZREVRANGE hackers 0 -1
@@ -640,7 +590,9 @@ What if I want to order them the opposite way, youngest to oldest? Use ZREVRANGE
 9) "Alan Turing"
 ```
 
-It is possible to return scores as well, using the WITHSOCRES argument:
+---
+
+### Redis Sorted set Tutorial
 
 ```
 > ZRANGE hackers 0 -1 withscores
@@ -664,9 +616,16 @@ It is possible to return scores as well, using the WITHSOCRES argument:
 18) "1969"
 ```
 
-## Operating on ranges
+---
 
-Sorted sets are more powerful than this. They can operate on ranges. Let's get all the individuals that were born up to 1950 inclusive. We use the ZRANGEBYSCORE command to do it:
+### Operating on ranges
+
+Sorted Set은 range로 탐색이 가능이라는
+막강한 기능을 보유하고 있음
+
+---
+
+### Redis Sorted set Tutorial
 
 ```
 > ZRANGEBYSCORE hackers -inf 1950
@@ -677,71 +636,27 @@ Sorted sets are more powerful than this. They can operate on ranges. Let's get a
 5) "Anita Borg"
 ```
 
-We asked Redis to return all the elements with a score between negative infinity and 1950 (both extremes are included).
+---
 
-It's also possible to remove ranges of elements. Let's remove all the hackers born between 1940 and 1960 from the sorted set:
+### Redis Sorted set Tutorial
 
 ```
 > ZREMRANGEBYSCORE hackers 1940 1960
 (integer) 4
 ```
 
-ZREMRANGEBYSCORE is perhaps not the best command name, but it can be very useful, and returns the number of removed elements.
+---
 
-Another extremely useful operation defined for sorted set elements is the get-rank operation. It is possible to ask what is the position of an element in the set of the ordered elements.
+### Redis Sorted set Tutorial
 
 ```
 > ZRANK hackers "Anita Borg"
 (integer) 4
 ```
 
-The ZREVRANK command is also available in order to get the rank, considering the elements sorted a descending way.
+---
 
-## Lexicographical scores
-
-With recent versions of Redis 2.8, a new feature was introduced that allows getting ranges lexicographically, assuming elements in a sorted set are all inserted with same identical score (elements are compared with the C memecmp function, so it is guaranteed that there is no collation, and every Redis instance will reply the same output).
-
-The main commands to operate with lexicographical ranges are ZRANGEBYLEX, ZREVRANGEBYLEX, ZREMRANGEBYLEX and ZLEXCOUNT.
-
-FOR example, let's add again our list of famous hackers, but this time use a score of zero for all the elements:
-
-```
-> ZADD hackers 0 "Alan Kay" 0 "Sophie Wilson" 0 "Richard Stallman" 0
-  "Anita Borg" 0 "Yukihiro Matsumoto" 0 "Hedy Lamarr" 0 "Claude Shannon"
-  0 "Linus Torvalds" 0 "Alan Turing"
-```
-
-Because of the sorted sets ordering rules, they are already sorted lexicographically:
-
-```
-> ZRANGE hackers 0 -1
-1) "Alan Kay"
-2) "Alan Turing"
-3) "Anita Borg"
-4) "Claude Shannon"
-5) "Hedy Lamarr"
-6) "Linus Torvalds"
-7) "Richard Stallman"
-8) "Sophie Wilson"
-9) "Yukihiro Matsumoto"
-```
-
-USING ZRANGEBYLEX we can ask for lexicographical ranges:
-
-```
-> ZRANGEBYLEX hackers [B [P
-1) "Claude Shannon"
-2) "Hedy Lamarr"
-3) "Linux Torvalds"
-```
-
-Ranges can be inclusive or exclusive (depending on the first character), also string infinite and minus infinite are specified repectively woth the + and - strings. See the documentation for more information.
-
-This feature is important because it allows us to use sorted sets as a generic index. For example, if you want to index elements by a 128-bit unsigned integer argument, all you need to do is to add elements into a sorted set with the same score (for example 0) but with an 8 byte prefix consisting of 128 bit number in big endian. Since numbers in big endian, when ordered lexicographically (in raw bytes order) are actually ordered numerically as well, you can ask for ranges in the 128 bit space, and get the element's value discarding the prefix.
-
-If you want to see the feature in the context of a more serious demo, check the Redis autocomplete demo.
-
-## Updating the score: leader boards
+### Updating the score: leader boards
 
 Just a final note about sorted sets before switching to the next topic. Sorted sets' socres can be updated at any time. Just calling ZADD against an element already included in the sorted set will update its score (and position) with O (log(N)) time complexity. As such, sorted sets are suitable when there are tons of updates.
 
