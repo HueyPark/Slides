@@ -679,6 +679,8 @@ A HyperLogLog is a probablilstic data structure used in order to count unique th
 
 Redis는 쉽고 간단하게 설정할수 있는 master-slave replication을 지원함
 
+---
+
 ## Replication 특징
 
 * 2.8버전부터 비동기 replication을 지원
@@ -691,23 +693,7 @@ Redis는 쉽고 간단하게 설정할수 있는 master-slave replication을 지
 
 ---
 
-### Safety of replication when master has persistence turned off
-
-In setups where Redis replication is used, it is strongly advised to have persistence turned on in the master, or when this is not possible, for example because of latency concerns, instances should be configured to avoid restarting automatically.
-
-To better understand why masters with persistence turned off configured to auto restart are dangerous, check the following failure mode where data is wiped from the master and all its slaves:
-
-1. We have a setup with node A acting as master, with persistence turned down, and nodes B and C replication from node A.
-2. A crashes, however it has some auto-restart system, that restarts the process. However since persistence is turned off, the node restarts with an empty data set.
-3. Nodes B and C will replicate from A, which is empty, so they'll effectively destroy therir copy of the data.
-
-When Redis Sentinel is used for high availability, als turning off persistence on the master, together with auto restart of the process, is dangerous. For example the master can restart fast enough for Sentinel to don't detect a failure, so that the failure mode described above happens.
-
-Every time data safetu is important, and replication is used with master configured without persistence, auto restart of instances should be disabled.
-
----
-
-### How Redis replication works
+### Replication은 어떻게 동작하는가?
 
 If you set up a slave upon connection it sends a SYNC command. It doesn't matter if it's the first time it has connected or it it's a reconnection.
 
@@ -753,244 +739,52 @@ You may wonder why it is possible to revert the read-only setting and have slave
 
 ## LRU eviction
 
-When Redis is used as a cache, sometimes it is handy to let it automatically evict old data as you add new one. This behavior is very well known in the community of developers, since it is default behavior of the popular memcached system.
+Redis가 cache로 사용될 때 오래된 data가 새로운 데이터에 의해 삭제될 수 있음
 
-LRU is actually only one of the supported eviction methods. This page covers the more gemeral topic of the Redis maxmemory directive that is used in order to limit the memory usage to a fixed amount, and it also covers in depth the LRU algorithm used by Redis, that is actually an approximationm of exact LRU.
+기본적으로 LRU 알고리즘의 approximation을 이요함
 
 ---
 
-### Maxmemory configuration directive
+### 최대 메모리 설정
 
-The maxmemory configuration directive is used in order to configure Redis to use a specified amount of memory for the data set. It is possible to set the configuration directive using the redis.conf file, or later using the CONFIG SET command at runtime.
+최대 메모리 설정은 Redis에게 최대 가용 메모리의 값을 설정하게 도와줌
 
-Setting maxmemory to zero results into no memory limits. This is default behavior for 64 bit systems, while 32 bit systems use an implicit memory limit of 3GB.
+`redis.conf` 파일을 수정하거나 `CONFIG SET` COMMAND를 이용해서 설정가능
 
-When the specified amount of memory reached, it is posiible to select among different behaviors, called policies. Redis can just return errors for commands that could result in more memory being used, or it can evict some old data in order to return back to the specified limit every time new data is added.
+최대 메모리를 0으로 설정하면 64bit system에서는 무한대, 32 bit에서는 3GB로 설정됨
+
+최대 메모리에 도착하면 설정된 policy에 따라 예전 data가 삭제됨
 
 ---
 
 ### Eviction policies
 
-The exact behavior Redis follows when the maxmemory limit is reached is configured using the maxmeory-policy configuration directive.
-
-The following policies are available:
-
-* noeviction: return errors when the memory limit was reached and the client is trying to execute commands that could result in more memory to used (most write commands, but DEL and a few more exceptions).
-* allkeys-lru: evict keys trying to remove the less recently used (LRU) keys first, in order to make space for the new data added.
-* volatile-lru: evict keys trying to remove the less recently used (LRU) keys first, but only among keys that have an expire set, in order to make space for the new data added.
-* allkeys-random: evict random keys in order to make space for the new data added.
-* volatile-random: evict random keys in order to make space for the new data added, but only evict keys with an expire set.
-* volatile-ttl: In order to make space for the new data, evict only keys with an expire set, and try to evict keys with a shorter time to live (TTL) first.
-
-The policies volitale-lru, volatile-random and volatile-ttl behave like noeviction if there are no keys to evict matching the prerequisites.
-
-To pick the right eviction policy is important depending on the access pattern of your application, however you can reconfigure the policy at runtime while the application is running, and monitor the number of cache misses and hits using the Redis INFO output in order to tune your setup.
-
-In general as a rule of thumb:
-
-* Use allkleys-lru policy when you expect a power-law distribution in the popularity of your requests, that is, you expect that a subset of elements will be accessed far more often tha the rest. This is a good pick if you are unsure.
-* Use the allkeys-random if you have a cyclic access where all the keys are scanned continuously, or when you expect the distribution to be uniform (all elements likely accessed with the same probability).
-* Use volatile-ttl if you want to be able to provide hints to Redis about what are good candidate for expiration by using different TTL values when you create your cache objects.
-
-The allkeys-lru and volatile-random policies are mainly useful when you want to use a single instance for both caching and to have a set of persistent keys. However it is usually a better idea to run two Redis instances to solve such a problem.
-
-It is also worth to note that setting an expire to a key costs memory, so using a policy allkeys-lru is more memory efficient since there is no need to set an expire for the key to be evicted under memory pressure.
+* noeviction: 메모리가 초과할 경우 error를 반환함, eviction을 일어나지 않음
+* allkeys-lru: LRU 알고리즘을 사용해 삭제
+* volatile-lru: expire값이 설정된 key 중 LRU 알고리즘을 사용해 삭제
+* allkeys-random: 랜덤한 key를 삭제
+* volatile-random: expire값이 설정된 key 중 랜덤하게 삭제
+* volatile-ttl: expire값이 설정된 key 중 가장 짧은 생존시간을 가진 key를 삭제
 
 ---
 
-### How the eviction process works
+### 어떻게 Eviction은 작동하는가?
 
-It is important to understand that the eviction process works like this:
-
-* A client runs a new command resulting in more data added.
-* Redis checks the memory usage, and if it is greater than the maxmemory limit, it evicts keys according the policy.
-* A new command is executed, and so forth.
-
-So we continuously cross the boundaries of the memoey limit, by going over it, and then by evicting keys to return back under the limit.
-
-If a command results in a lot of memory being used (like a big set intersection stored into a new key) for some time the memory limit can be surpassed by a noticeable amount.
+1. 클라이언트가 새로운 data를 추가하는 COMMAND를 실행
+2. Redis가 메모리를 확인하고 maxmemory 한계를 초과하면 policy에 따라 key를 evict함
+3. 새로운 COMMAND가 실행됨
 
 ---
 
 ### Approximated LRU algorithm
 
-Redis LRU algorithm is not an exact implementation. This means that Redis is not able to pick the best candidate for eviction, that is, the access that was accessed the most in the past. instead it will try to run an approximation of the LRU algolithm, by sampling a small number of keys, and evicting the one that is the best (with the oldest access time) among the sampled keys.
-
-However since Redis 3.0 the algorithm was improved to also take a pool of good candidates for eviction. This improved the performance, making it able to approximate more closely the behavior of a real LRU algorithm.
-
-What is important about the Redis LRU algorithm is that you are able to tune the precision of the algorithm by changing the number of samples to check for every eviction. This parameter is controlled by the following configuration directive:
-
-The reason why Redis does not use a true LRU implementation is because it costs more memory. However the approximation is virtually equivalent for the application using Redis. The following is a graphical comparison of how the LRU approximation used by Redis compares with true LRU.
+Redis LRU 알고리즘은 정확한 구현이 아님
+Redis는 정확한 LRU 알고리즘을 구현하는 대신 적절한 근사값을 얻었음
+3.0 버전부터는 그 근사치의 정밀도가 더 증가하였음
+Redis가 근사값을 사용하는 이유는 메모리 사용량을 줄이기 위함임
+하지만 이 근사치는 LRU와 동등한 성능을 가지고 있음
 
 ---
-
-## Transactions
-
-MULTI, EXEC, DISCARD and WATCH are the foundation of transactions in Redis. They allow the execution of group of commands in a single step, with important guarantees:
-
-* All the commands in a transaction are serialized and executed sequentially. It can never happen that a request issued by another client is served in the middle of the execution of a Redis transactions. This guarantees that the commands are executed as a single isolated operation.
-* Either all of the commands or none are processed, so a Redis transaction is als atomic. The EXEC command triggers the execution of all the commands in the transaction, so if a client loses the connection to the server in the context of a transaction before calling the MULTI command none of the operations are performed, instead if the EXEC command is called, all the operations are performed. When using the append-only file Redis makes sure to use a single write(2) syscall to write the transaction on disk. However if the Redis server crashes or is killed by the system administrator in some hard way it is possible that only a partial number of operations are registered. Redis will detect this condition at restart, and will exit with an error. Using the redis-check-aof tool it is possible to fix the append only file that will remove th partial transaction so that the server can start again.
-
-Starting with version 2.2, Redis allows for an extra guarantee to the above two, in the form of optimistic locking in a way very similar to a check-and-set (CAS) operation. This is documented later on this page.
-
-### Usage
-
-A Redis transaction is entered using the MULTI command. The command always replies OK. At this point the user can issue multiple commands. Instead of executing these commands, Redis will queue them. All the commands are executed once EXEC is called.
-
-Calling DISCARD instead will flush the transaction queue and will exit the transaction. The following example increments keys foo and bar atomically.
-
-```
-> MULTI
-OK
-> INCR foo
-QUEUED
-> INCR bar
-QUEUED
-> EXEC
-1) (integer) 1
-2) (integer) 2
-```
-
-As it is possible to see from the session above, EXEC returns an array of replies, where every element is the reply of a single command in the transaction, in the same order the commands were issued.
-
-When a Redis connection is in the context of a MULTI request, all commands will reply with the string QUEUED (sent as a Status Reply from the point of view of the Redis protocol). A queued command is simply scheduled for execution when EXEC is called.
-
-### Errors inside a transaction
-
-During a transaction it is possible to encounter two kind of command errors:
-
-* A command may fail to be queued, so there may be an error before EXEC is called. For instance the command may be syntactically wrong (wrong number of arguments, wrong command name, ...), or there may be some critical condition like an out of memory condition (if the server is configured to have a memory limit using the maxmemory directive).
-* A command may fail after EXEC is called, for instance since we performed an operation against a key with the wrong value (like calling a list operation against a string value).
-
-Clients used to sense the first kind of errors, happening before the EXEC call, by checking the return value of the queued command: if the command replies with QUEUED it was queued correctly, otherwise Redis returns an error. If there is an error while queueing a command, most clients will abort the transaction discarding it.
-
-However starting with Redis 2.6.5, the server will remember that there was an error during the accumulation of commands, and will refuse the transaction returning also an error during EXEC, and discarding the transaction automatically.
-
-Before Redis 2.6.5 the behavior was to execure the transaction with just the subset of commands queued successfully in case the client called EXEC regardless of previous errors. The new behavior makes it much more simple to mix transactions with pipelining, so that the whole transaction can be sent at once, reading all the replies later at once.
-
-Errors happening after EXEC instead are not handled in special way: all the other commands will be executed even if some command fails during the transaction.
-
-This is more clear on the protocol level. In the following example on command will fail when executed even if the syntax is right:
-
-```
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is '^]'.
-MULTI
-+OK
-SET a 3
-abc
-+QUEUED
-LPOP a
-+QUEUED
-EXEC
-*2
-+OK
--ERR Operation against a key holding the wrong kind of value
-```
-
-EXEC returned two-element Bulk string reply where ine is an OK code and the other an -ERR reply. It's up to the client library to find a sensible way to provide the error to the user.
-
-It's important to note that even when a command fails, all the other commands in the queue are processed - Redis will not stop processing of commands.
-
-Another example, again using the wire protocol with telnet, shows how syntaxx errors are reportes ASAP instead:
-
-```
-MULTI
-+OK
-INCR a b c
--ERR wrong number of arguments for 'incr' command
-```
-
-This time due ti the syntax error the bad INCR command is not queued at all.
-
-### Why Redis does not support roll backs?
-
-If you have a relational databases background, the fact that Redis commands can fail during a transaction, but still Redis will execute the rest of the transaction instead of rolling back, may look odd to you.
-
-However there are good opinions for this behavior:
-
-* Redis commands can fail only if called with a wrong syntax (and the problem is not detectable during the command queueing), or against keys holding the wrong data type: this means that in practical terms a failing command is the result of a programming errors, and a kind of error that is very likely to be detected during development, and not in production.
-
-* Redis is internally simplified and faster because it does not need the ability to roll back.
-
-An argument against Redis point of view is that bugs happen, however it should be noted that in general the rollback does not save you from programming errors. For instance if a query increments a key by 2 instead of 1, or increments the wrong key, ther is no way for a rollback mechanism to help. Given that no one can save the programmer from his errors, and that the kind of errors required for a Redis command to fail are unlikely to enter in production, we selected the simpler and faster approach of no supporting roll backs on errors.
-
-### Discarding the command queue
-
-DISCARD can be used in irder to abort a transaction. In this case, no commands are executed and the state of the connection is restored to normal.
-
-```
-> SET foo 1
-OK
-> MULTI
-OK
-> INCR foo
-QUEUED
-> DISCARD
-OK
-> GET foo
-"1"
-```
-
-### Optimistic locking using check-and-set
-
-WATCH is used to provide a check-and-set (CAS) behavior to Redis transactions.
-
-WATCHed keys are monitored in order to detect changes aginst them. If at least one watched key is modified before the EXEC command, the whole transaction aborts, and EXEC returns a Null reply to notify that the transaction failed.
-
-For example, imagine we have the need to atomically increment hte value of a key by 1 (let's suppose Redis doesn't have INCR)
-
-The firest try may be the following:
-
-```
-val = GET mykey
-val = val + 1
-SET mykey val
-```
-
-This will work reliably only if we have a single client performing the operation in a given time. If multiple clients try to increment the key at about the same time there will be a race condition. For instance, client A and B will read the old value, for instance, 10. The value will be incremented to 11 by both the clients, and finally SET as the value of the key. So the final value will be 11 instead of 12.
-
-Thanks to WATCH we are able to model the problem very well:
-
-```
-WATCH mykey
-val = GET mykey
-val = val + 1
-MULTI
-SET mykey val
-EXEC
-```
-
-Using the above code, if there are race conditions and another client modifies the result of val in the time between our call to WATCH and our call to EXEC, the transaction will fail.
-
-We just have to repeat the operation hoping this time we'll not get a new race. This form of locking is called optimistic locking and is a very powerful form of locking. In many use cases, multiple clients will be accessing different keys, so collisions are unlikely - usually there's no need to repeat the operation.
-
-### WATCH explained
-
-So what is WATCH really about? It is a command that will make the EXEC conditional: we are asking Redis to perform the transaction only if no other client modified any of the WATCHed keys. Otherwise the transaction is not entered at all. (Note that if you WATCH a volatile key and Redis expires the key after you WATCHed it, EXEC will still work. More on this.)
-
-WATCH can be called multiple times. Simply all the WATCH calls will have the effects to watch for changes startign from the call, up to the moment EXEC is called. You can alse send any number of keys to a single WATCH call.
-
-When EXEC is called, all keys are UNWATCHed, regardless of whether the transaction was aborted or not. Also when a client connection is closed, everything gets UNWATCHed.
-
-It is also possible to use the UNWATCH command (without arguments) in order to flush all the watched keys.
-
-Sometimes this is useful as we optimistically lock a fwe keys, since possibly we need to perform a transaction to alter those keys, but after reading ther current contern of the keys we don't want to proceed. When this happens we just call UNWATCH so that the connection can already be used frelly for new transactions.
-
-Using WARCH to implement ZPOP
-
-A good example to illustrate how WATCH can be used to create new atomic operations otherwise not supported by Redis is to implement ZPOP, that is a command that pops the element with lower score from a sorted set in a atomic way. This is the simplest implementation:
-
-```
-WATCH zset
-element = ZRANGE zset 0 0
-MULTI
-ZREM zset element
-EXEC
-```
-
-If EXEC fails (i.e. returns a NULL reply) we just repeat the operation.
 
 ### Redis scripting and transactions
 
