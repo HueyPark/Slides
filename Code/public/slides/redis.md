@@ -195,7 +195,7 @@ OK
 Redis List는 Linked List를 기반으로 구현되어 있음
 따라서 Linked List의 특성을 동일하게 가짐
 * element를 앞 또는 뒤에 추가할 경우 유리
-* index를 data에 접근할 경우 불리 
+* index를 data에 접근할 경우 불리
 
 ---
 
@@ -338,7 +338,7 @@ element가 없어도 5초간 대기하겠음
 * return value에 key가 포함되어 있음
 * timeout이 되면 NULL이 반환됨
 
-RPOPLPUSH, BRPOPLPUSH 이런 친구들도 있습니다 
+RPOPLPUSH, BRPOPLPUSH 이런 친구들도 있습니다
 
 ---
 
@@ -656,15 +656,18 @@ Sorted Set은 range로 탐색이 가능이라는
 
 ---
 
-### Updating the score: leader boards
+### Redis Sorted set으로 랭킹 구현하기
 
-Just a final note about sorted sets before switching to the next topic. Sorted sets' socres can be updated at any time. Just calling ZADD against an element already included in the sorted set will update its score (and position) with O (log(N)) time complexity. As such, sorted sets are suitable when there are tons of updates.
+Sorted set의 score는 ZADD를 통해 언제나 수정가능함
+이런 특성으로 인해 Sorted set은 랭킹에 매우 적합함
 
-Because of this characteristic a common use case is leader boards. The typical application is a Facebook game where you combine the ability to take users sorted by their high score, plus the get-rank operation, in order to show the top-N users, and the user rank in the leader board (e.g., "you are the #4932 best socre here").
+---
 
 ## Bitmaps
 
-Bitmaps are not an actual data type, but a set of bit-oriented operaions defined on the String type. Since strings are binary safe blobs and their maximum length is 512MB, they are suitable to set up to 2^32 different bits.
+Bitmaps는 별도의 data type은 아니고 Redis String을 사용한다 다만 여러 명령어를 통해 bit연산을 지원한다
+
+---
 
 ## HyperLogLogs
 
@@ -674,15 +677,17 @@ A HyperLogLog is a probablilstic data structure used in order to count unique th
 
 ## Replication
 
-Redis replication is a very simple to use and configure master-slave replication that allows slave Redis servers to be exact copies of master servers. The following are very important facts about Redis replication:
+Redis는 쉽고 간단하게 설정할수 있는 master-slave replication을 지원함
 
-* Redis uses asynchrounous replication. Starting with Redis 2.8, however, slaves will periodically acknowledge the amount of data processed from the replication stream.
-* A master can have multiple slaves.
-* Slaves are able to accept connections from other slaves. Aside from connecting a number of slaves to the same master, slaves can also be connected to other slaves in a graph-like structure.
-* Redis replication is non-blocking on the master side. This mean that master will continue to handle queries when one or more slaves perform the initial synchronization.
-* Replication is also non-blocking on the slave side. While the slave is performing the initila synchronization, it can handle queries using the old version of the dataset, assuming you  configured Redis to do so in redis.conf. Otherwise, you can configure Redis slaves to return an error to clients if the replication stream is down. However after the initial sync, the old dataset must be deleted and the new one must be loaded. The slave will block incoming connections during this bried window.
-* Replication can be used both for scalability, in order to have multiple slaves for read-only queries (for example, heavy SORT operations can be offloaded to slaves), or simply for data redundancy.
-* It is possible to use replication to avoid the cost of having the master write full dataset to disk: just configure your master redis.conf to avoid savinf (just comment all the "save" directives), then connect a slave configured to save from time to time. However in this setup make sure masters don't restart automatically (please read the next section for more information).
+## Replication 특징
+
+* 2.8버전부터 비동기 replication을 지원
+* master는 복수의 slave를 가질 수 있음
+* slave는 다른 slave와 통신할 수 있음
+* replication이 master의 작업을 blocking하지 않음
+* slave도 replication작업에 의해 blocking되지 않음, 하지만 최초 동기화 이후 데이터 동기화 시간에 들어온 요청을 blocking할 수 있음
+* replication은 read-only query를 사용한 scalability와 data 이중화를 위해 사용할 수 있음
+* replication을 통해 slave만 on-disk persistance를 지원하게 설정할 수 있음
 
 ---
 
@@ -1176,7 +1181,7 @@ The following documentation is very important in order to run Redis in a low lat
 1. Make sure you are not running slow commands that are blocking the server. Use the Redis Slow Log feature to check this.
 2. For EC2 users, make sure you use HVM based modern EC2 instances, like m3.medium. Otherwise fork() is too slow.
 3. Transparent huge pages must be disabled from your kernel. Use echo never >/sys/kernel/mm/transparent_hugepage/enabled to disable them, and restart your Redis process.
-4. If you are using a virtual machine, it is possible that you have an intrinsic latency that has nothing to do with Redis. Check the minimum latency you can expect from your runtime environment using ./redis-cli --intrinsic-latency 100. Note: you need to run this command in the server not in the client. 
+4. If you are using a virtual machine, it is possible that you have an intrinsic latency that has nothing to do with Redis. Check the minimum latency you can expect from your runtime environment using ./redis-cli --intrinsic-latency 100. Note: you need to run this command in the server not in the client.
 5. Enable and use the Latency monitor feature of Redis in order to get a human readable description of the latency events and causes in yout Redis instance.
 
 In general, use the following table for durability VS latency/performance tradeoffs, orderd from stronger safety to better latency.
