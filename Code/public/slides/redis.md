@@ -798,167 +798,118 @@ However it is not impossible that in a non immediate future we'll see that the w
 
 ## On-disk persistence
 
-Redis provides a different range of persistence options:
+Redis persistence는 두가지 옵션을 제공함
 
-* The RDB persistence performs point-in-time snapshots of your dataset at specified intervals.
-* The AOF persistence logs every write operation received by the server, that will be played again at server startup, reconstructing the original dataset. Commands are logged using the same format as the Redis protocol itself, in an append-only fashion. Redis is able to rewrite the log on background when it gets too big.
-* If you wish, you can disable persistence at all, if you want your data to just exist as long as the server is running.
-* It is possible to combine both AOF and RDB in the same instance. Notice that, in this case, when Redis restarts the AOF file will be used to reconstruct the original dataset since it is guaranteed to be the most complete.
+---
 
-The most important thing to understand is the different trade-offs between the RDB and AOF persistence. Let's start with RDB:
+## On-disk persistence 특징
 
-### RDB advantages
+* RDB: 일정 시간 간격으로 데이터의 snapshot을 만드는 방식
+* AOF: 모든 쓰기 operation을 저장해 놓았다가 서버가 재시작할 때 데이터를 새로 만드는 방식
 
-* RDB is a very compact single-file point-in-time representation of your Redis data. RDB instance you may want to archive your RDB files every hour for the latest 24 hours, and to save an RDB snapshot every day for 30 days. This allows you easily restore different versions of the data set in case of disasters.
-* RDB is very good for disaster recovery, being a single compact file can be transferred to far data centers, or on Amazon S3 (possibly encrypted).
-* RDB maximizes Redis performances since the only work the Redis parent process needs to do in order to persist is forking a child that will do all the rest. The parent instance will never perform disk I/O or alike.
-* RDB allows faster restarts with big datasets compared to AOF.
+---
 
-### RDB disadvantages
+### RDB의 장점
 
-* RDB is NOT good if you need to minimize the chance of data loss in case Redis stops working (for example after a power outage). You can configure different save points where an RDB is produced (for instance after at least five minutes and 100 writes against the data set, but you can have multiple save points). However you'll usually create an RDB snapshot every five minutes or more, so in case of Redis stopping working without a correct shutdown for any reason you should be prepared to lose the latest minutes of data.
-* RDB needs to fork() often in order to persist on disk using a child process. Fork() can be time consuming if the dataset is big, and may result in Redis to stop serving clients for some millisecond or even for one second if the dataset is very big ans the CPU performance not great AOF also needs to fork() but you can tune how often you want to rewrite your logs without any trade-off durability.
+* RDB는 장애 복구에 유리함, 하나의 파일을 저장해 놓는 것만으로 데이터 백업이 가능
+* RDB는 Redis의 performance를 최대로 이끌어 냄
+* 서버 재시작이 빠름
 
-### AOF advantages
+---
 
-* Using AOF Redis is much more durable: you can have different fsync policies: no fsync every second, fsync at every query. With the default policy of fsync every second write performances are still great (fsync is performed using a background thread and the main thread will try hard to perform writes when no fsync is in progress.) but you can only lose one second worth of writes.
-* The AOF log is an append only log, so ther are no seeks, nor corruption problems if there is a power outage. Even if the log ends with an half-written command for some reason (disk full or other reasons) the redis-checj-aof tool is able to fix it easily.
-* Redis is able to automatically rewrite the AOF in background when it gets too big. The rewrite is completely safe as while Redis continues appending to the old file, a completely new one is produced with the minimal set of operations needed to create the current data set, and once this second file is ready Redis switches the two and starts appending to the new one.
-* AOF contains a log of all operations one after the other in an easy to understand and parse format. You can even easily export an AOF file. For instance even if you flushed everything for an error using a FLUSHALL command, if no rewrite of the log was performed in the meantime you can still save your data set just stopping the server, removing the latest command, and restarting Redis again.
+### RDB의 단점
 
-### AOF disadvantages
+* RDB는 snapshot 사이의 데이터를 보존할 수 없음
+* 만약 이 문제를 없애려고 snapshot 간격을 줄이면 performance 문제가 발생함
 
-* AOF diles are usually bigger than the equivalent RDB files for the same dataset.
-* AOF can be slower than RDB depending on the exact fsync policy. In general with fsync set to every second performances are stil very high, and with fsync disabled it should be exactly as fast as RDB even under high load. Still RDB is able to provide more guarantees about the maximum latency even in the case of an huge write load.
-* In the past we experenced rare bugs in specific commands (for instance ther was on involving blocking commands like BRPOPLPUSH) causing the AOF produced to not reproduce exactly the same dataset on reloading. This bugs are rare and we have tests in the test suite creating random complex datasets automatically and reloading them to check everythong is ok, but this kind of bugs are almost impossible with RDB persistence. To make this point more clear: the Redis AOF works incrementally updating an existing state, like MySQL or MongoDB does, while the RDB snapshotting creates everything from scratch again and again, that is conceptually more robust. However - 1) It should be noted that every time the AOF is rewritten by Redis it is recreated from scratch starting from the actual data contained in the data set, making resistance to bugs stringer compared to an always appending AOF file (or one rewritten reading the old AOF instead of reading the data in memory). 2) We never had a single report from users abour an AOF corruption that was detected in the real world.
+---
 
-### Ok, so what should I use?
+### AOF의 장점
 
-The general indication is that you should use both persistence methods if you want a degree of data safety comparable to what PostgreSQL can provide you.
+* 설정에 따라 데이터를 쿼리 단위 또는 초 단위로 보존할 수 있음
+* 모든 operation을 저장하기 때문에 이해하기 쉬운 데이터가 저장됨
 
-If you care a lot about your data, but still can live with a few minutes of data loss in case of disasters, you can simply use RDB alone.
+---
 
-There are many users using AOF alone, but we dicourage it since to have an RDB snapshot from time to time is a great idea for doing database backups, for faster restarts, and int the event of bugs in the AOF engine.
+### AOF의 단점
 
-Note: for all these reasons we'll likely end up unifying AOF and RDB into a single persistence model in the future (long term plan).
-
-The following sections will illustrate a few more defails about the two persistence models.
+* AOF 파일은 일반적으로 RDB 파일에 비해 큼
+* RDB 방식에 비해 실행 중 performance가 떨어짐
 
 ---
 
 ## Redis Cluster
 
-This document is a gentle introduction to Redis Cluster, that does not use complext to understand distributed systems concepts. It provides instructions about how to setup a cluster, test and operate it, without going into the details that are covered in the Redis Cluster specification but just describing how the system behaves from the point of viwe of the user.
+Redis가 제공하는 Cluster에 대한 간단한 설명
+간단하게 Redis Cluster의 분산 시스템 컨셉을 이해하는 것이 목적
+Redis 3.0 이상에서 적용됨
+진지하게 프로젝트에 적용하려한다면 세부적인 검토가 별도로 필요함
 
-However this tutorial tries to provide information about availability and consistency characteristics of Redis Cluster from the point of view of the final user, stated in a simple to understand way.
+### Cluster란 무엇인가?
 
-Note this tutorial requires Redis version 3.0 or higher.
 
-If you plan to run a serious Redis Cluster deployment, the more formal specification is a suggested reading, even if not strictly required. However it is a good idea to start from this document, play with Redis Cluster some time, and only later read the specification.
+### Redis Cluster란
 
-### Redis Cluster 101
-
-Redis Cluster provides a way to run Redis installation where data is automatically sharded across multiple Redis nodes.
-
-Redis Cluster also provides some degree of availability during partitions, that is in practical terms the ability to continue the operations when some nodes fail or are not able to communicate. However the cluster stops to operate in the event of larger failures (for example when the majority of masters are unavailable).
-
-So in practical terms, what you get with Redis Cluster?
-
-* The ability to automatically split your dataset among multiple nodes.
-* The ability to continue operations when a subset of the nodes are experiencing failures or are unable to communicate with the rest of the cluster.
+자동으로 여러 Redis node들에 데이터가 샤딩되어 저장되는 기능을 제공함
+또 몇 개의 node가 fail 되더라도 전체적인 시스템이 동작하는 기능을 지원함
 
 ### Redis Cluster TCP ports
 
-Every Redis Cluster node requires two TCP connections open. The normal Redis TCP port uset to serve clients, for example 6379, plus the port obtained by adding 10000 to the data port, so 16379 in the example.
+모든 Redis node는 2개의 TCP connection 포트를 필요로 함
 
-This second high port is used for the Cluster bus, that is a node-to-node communication channel using a binary protocol. The Cluster bus is used by nodes for failure detection, configuration update, failover authorization and so forth. Clients should never try to communicate with the cluster bus port, but always with the normal Redis command port, however make sure you open both ports in your firewall, otherwise Redis cluster nodes will be not able to communicate.
+* 하나는 클라이언트와의 통신을 위해 사용
+* 두번째는 node와 node간의 통신을 위해 사용하는 bus port
+** 장애 감지, 설정 변경, 장애 복구 권한 부여등
 
-The command port and cluster bus port offset is fixed and is always 10000.
-
-Note that for a Redis Cluster to work properly you need, for each node:
-
-1. The noraml client communication port (usually 6379) used to communicate with clients to be open to all the clients that need to reach the cluster, plus all the othe cluster nodes (that use the client port for keys migrations).
-
-2. The cluster bus port (the client prot + 10000) must be reachable from all the other cluster nodes.
-
-If you don't open both TCP ports, your cluster will not work as expected.
-
-The cluster bus uses a different, binary protocol, for node to node data exchange, which is more suited to exchange information between nodes using little bandwidth and processing time.
+사용자는 bus 포트를 이용해 통신할 필요가 없으며 Redis 명령어만 사용하면 됨
 
 ### Redis Cluster data sharding
 
-Redis Cluster does not use consistent hashing, but a different form of sharding where every key is conceptually part of what we call an hash slot.
+Redis Cluster는 consistent hashing을 사용하지 않고 hash slot이라고 부르는 방식을 사용함
 
-There are 16384 hash slots in Redis Cluster, and to compute what is the hash slot of a given key, we simply take the CRC16 of the key modulo 16384.
+Redis Cluster에는 16384개의 hash slot이 있고 이를 지정된 slot의 키를 계산해서 우리는 CRC16의 검증된 키를 받을 수 있음
 
-Every node in a Redis Cluster is reponsible for a subset of the hash slots, so for example you may have a cluster with 3 nodes, where:
-
+예를 들면
 * Node A contains hash slots from 0 to 5500.
 * Node B contains hash slots from 5501 to 11000.
 * Node C conatins hash slots from 11001 to 16384.
 
-This allows to add and remove nodes in the cluster easily. For example if I want to add a new node D, I need to move some hash slot from nodes A, B, C to D. Similarly if I want to remove node A from the cluster I can just move the hash slots served by A to B and C. When the node A will be empty I can remove it from the cluster completely.
-
-Because moving hash slots from a node to another does not require to stop operations, adding and removing nodes, or changin the percentage of hash slots hold my nodes, does not require any downtime.
-
-Redis Cluster supports multiple key operations as long as all the keys invilved into a single command execution (or whole transaction, or Lua script execution) all belong to the same hash slot. The user can force multiple keys to be part of the same hash slot by using a concept called hash tags.
-
-Hash tags are documented in the Redis Cluster specification, but the gist is that if there is a substring between {} brackets in a key, only what is inside the string is hashed, so for example this {foo} key and another guranteed to be in the same hash slot, and can be used together in a command with multiple keys as arguments.
+`consistent hashing: 메타 정보를 조회하지 않아도 클러스터에서 키가 저장된 노드를 바로 찾아갈 수 있는 방법 (memcached가 이용)`
 
 ### Redis Cluster master-slave model
 
-In order to remain available when a subset of master nodes are failing or are not able to communicate with the majority of nodes, Redis Cluster uses a master-slave model where every hash slot has from 1 (the master itself) to N replicas (N-1 additional slaves nodes).
+Master 노드에 장애가 생기거나 통신이 불가능해 지는 상황에서 상황에서의 처리를 위해 master-slave 모델을 사용함
 
-In our example cluster with nodes A, B, C if node B fails the cluster is not able to continue, since we no longer have a way to serve hash slots in the range 5501-11000.
+예에서 Node B에 장애가 발생하면 hash slot 5501에서 11000은 사용 불가
 
-However when the cluster is created (or at a latter time) we add a slave node to every master, so that the final cluster is composed of A, B, C that are masters nodes, and A1, B1, C1 that are slaves nodes, the system is able to continue if node B fails.
+하지만 우리가 마스터 노드에 슬레이브 노드를 모두 추가했다면 (Node A, B, C에 A1, B1, C1 추가) B에 문제가 생겨도 서비스 가능
 
-Node B1 replicates B, and B fails, the cluster will promote node B1 as the new master and will continue to operate correctly.
-
-However note that if nodes B and B1 fail at the same time Redis Cluster is not able to continue to operate.
+Node sB가 B를 복제 중이기 때문에 B에 장애가 생겼을 때 sB가 B로 승격됨
 
 ### Redis Cluster consistency guarantees
 
-Redis CLuster is not able to guarantee strong consistency. In practical terms this means that under certain conditions it is possible that Redis Cluster will lose writes that were acknowledged by the system to the client.
+Redis Cluster는 강한 consistency (일관성)을 보장하지않음
+이는 특정한 조건에서 Redis Cluster가 클라이언트가 쓴 데이터를 잃을 수 있음을 말함
 
-The first reason why Redis Cluster can lose writes is because it uses asynchronous replication. This means that during writes the following happens:
+첫번째 이유: Redis Cluster가 비동기로 replication을 하기 때문임
 
-* Your client writes to the master B
-* The master B replies OK to your client.
-* The master B propagates the write to its slaves B1, B2 and B3.
+1. 클라이언트가 master B에 기록함
+2. master B가 클라이언트에 OK를 반환
+3. master B가 슬레이브 노드에게 데이터 복제
 
-As you can see B does not wait for an acknowledge from B1, B2, B3 before replying to the client, since this would be a prohibitive latency penalty for Redis, so if your client writes something, B acknowledges the write, but crashes before being able to send the write to its slaves, one of the slaves (that did not received the write) can be promoted to master, losing the write forever.
+이것은 이상하게 보일 수 있지만 일반적인 성능과 일관성의 trade-off임
 
-This is very similar to what happens woth most databases that are configured to flush data to disk every second, so it is a scenario you are already able to reason about because of past experiences with traditional database systems not involving distributed systems. Similarly you can improve consistency by forcing the database to flush data on disk before replying to the client, but thos usually results into prohibitively low performance. That would be the equivalent of synchronous replication in the case of Redis Cluster.
+만약 꼭 필요하다면 `WAIT` 명령어를 이용해 동기쓰기를 할 수도 있음
 
-Basically there is a trade-off to take between performance and consistency.
+두번째 이유: 데이터베이스간 통신 장애가 발생할 수 있음 
 
-Redis Cluster has support for synchronous writes when absolutely needed, implemented via the WAIT command, this makes losing writes a lot less likely, however note that Redis Cluster does not implement strong consistency even when synchronous replication is used: it is always possible under more complex failure scenarios that a slave that was not able to receive the write is elected as master.
+예)
+가정:
+    서버: 마스터 A, B, C와 슬레이브 A1, B1, C1으로 이루어진 서버,
+    클라이언트: Z1,
+    A, C, A1, B1, C1 그룹과 B, Z1그룹이 물리적으로 분리
 
-There is another notable scenario where Redis Cluster will lose writes, that happens during a network partition where a client is isolated with a minority of instances including at least a master.
-
-Take as an example our 6 nodes cluster composed of A, B, C, A1, B1, C1, with 3 masters and 3 slaves. There is also a client, that we will call Z1.
-
-After a partition occurs, it is possible that in one side of the partition we have A, C, A1, B1, C1 and in the other side we have B and Z1.
-
-Z1 is still able to write to B, that will accept its writes. If the partition heals in a very short time, the cluster will continue normally. However if the partition lasts enough time for B1 to be promoted to master in the majority side of the partition, the writes that Z1 is sending to B will be lost.
-
-Note that there is a maximum window to the amount of writes Z1 will be able to send to B: if enough time has elapsed for the majority side of the partition to elect a slave as master, every master node in the minority side stops accepting writes.
-
-This amount of time is a very important configuration directive of Redis Cluster, and is called the node timeout.
-
-After node timeout has elapsed, a master node is considered to be failing, and can be replaced by one of its replicas. Similarly after node timeout has elapsed without a master node to be able to sense the majority of the other master nodes, it enters an error state and stops accepting writes.
-
-### Redis Cluster configuration parameters
-
-We are about to create an example cluster deployment. Before to continue let's introduce the configuration parameters that Redis Cluster introduces in the redis.conf file. Some will be obvious, others will be more clear as you continue reading.
-
-* cluster-enabled <yes/no/>: If yes enables Redis Cluster support in a specific Redis instance. Otherwise the instance starts as a stand alone instance as usually.
-* cluster-config-file <filename>: Note that despite the name of this option, this is not an user editable configuration file, but the file where a Redis Cluster node automatically persists the cluster configuration (the state, basically) every time there is a change, in order to be able to re-read it at statup. The file lists things like the ohter nodes in the cluster, their state, persistent variables, and so forth. Ofren this file is rewritten and flushed on disk as a result of some message reception.
-* cluster-node-timeout <milliseconds>: The maximum amount of time a Redis Cluster node can be unavailable, without it being considered as failing. if a master node is not reachable for more than the specified amount of time, it will be failed over by its slaves. This parameter controls other important things in Redis Cluster. Notably, every node that can't reach the majority of master nodes for the specified amount of time, will stop accepting queries.
-* cluster-salve-validity-factor <factor>: If set to zero, a slave will always try to failover a master, regardless of the amount of time the link between the master and the slave remained disconnected. If the value is positive, a maximum disconnection time is calculated as the node timeout value multiplied by the factor provided with this option, and if the node is a slave, it will not try to start a failover if the master link was disconnected for mote than the specified amount of time. For example if the node timeout is set to 5 seconds, and the validity factor is set to 10, a slave diconnected from the master for more than 50 secons, and the validity factor is set to 10, a slave disconnected from the master for more than 50 seconds will not try to failover its master. Note that any value different than zero may result in Redis Cluster to be not available after a master failure if there is no slave able to failover it. In that case the cluster will return back available only when the original master rejoins the cluster.
-* cluster-migration-barrier <count>: Minimum number of slaves a master will remain connected with, for another slaver to migrate to a master which is no longer covered by any slave. See the appropriate section about replica migration in this tutorial for more information.
-* cluster-require-full-coverage <yes/no>: If this is set to yes, as it is by default, the cluster stops accepting writes if some percentage of the key space is not covered by any node. If the option is set to no, the cluster will still serve queries even if only requests abouyt a subset of keys can be processed.
+만약 두 그룹간 네트워크가 오랜기간 불안정해진다면 B1이 마스터로 B는 커넥션을 잃어버림
 
 ---
 
@@ -975,7 +926,7 @@ The following documentation is very important in order to run Redis in a low lat
 1. Make sure you are not running slow commands that are blocking the server. Use the Redis Slow Log feature to check this.
 2. For EC2 users, make sure you use HVM based modern EC2 instances, like m3.medium. Otherwise fork() is too slow.
 3. Transparent huge pages must be disabled from your kernel. Use echo never >/sys/kernel/mm/transparent_hugepage/enabled to disable them, and restart your Redis process.
-4. If you are using a virtual machine, it is possible that you have an intrinsic latency that has nothing to do with Redis. Check the minimum latency you can expect from your runtime environment using ./redis-cli --intrinsic-latency 100. Note: you need to run this command in the server not in the client.
+4. If you are using a virtual machine, it is possible that you have an intrinsic latency that has nothing to do with Redis. Check the minimum latency you can expect from your runtime environment using ./redis-cli --intrinsic-latency 100. Note: you need to run this command in the server not in the client. 
 5. Enable and use the Latency monitor feature of Redis in order to get a human readable description of the latency events and causes in yout Redis instance.
 
 In general, use the following table for durability VS latency/performance tradeoffs, orderd from stronger safety to better latency.
@@ -1084,4 +1035,11 @@ IMPORTAN NOTE: a VERY common source of latency generated by execution of slow co
 
 ---
 
-## Best practice
+## 활용 사례
+
+* 캐시
+** 느린 데이터베이스의 병목 테이블 cache 
+** 계산량이 많은 서버 사이드 작업결과에 대한 cache
+* 쉬운 정렬
+** 유저 랭킹
+* 대량 데이터 입력(로그 등) 의 버퍼
