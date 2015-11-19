@@ -5,12 +5,13 @@
 ## Contents
 
 * Redis란?
-* Data structures
+* Data type
 * Replication
+* Cluster
 * LRU eviction
-* Transaction
 * On-disk persistence
-* Best practice
+* Lua Scripting & Transaction
+* 활용사례
 
 ---
 
@@ -18,7 +19,7 @@
 
 In-memory data structure store <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
-Database, Cahce, Message broker로 사용 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+Database, Cahce, Message broker로 사용가능 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 Open source <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
@@ -26,125 +27,143 @@ Open source <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ### 기능
 
-* Replication <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-* Lua Scripting, Transaction <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-* LRU eviction <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
-* On-disk persistence <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
-* High availability via Redis Sentinel <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
-* Automatic partitioning with Redis Cluster <!-- .element: class="fragment fade-in" data-fragment-index="6" -->
+* Lua Scripting, Transaction <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* LRU eviction <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* On-disk persistence <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* Replication <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
+* Automatic partitioning with Redis Cluster <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
 
 ---
 
 ### 특징
 
 * ANSI C로 작성 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-* Works in most POSIX systems like Linux, BSD, OS X <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-* Windows 에 대한 공식 지원은 없음, 하지만 Win-64 port를 Microsoft에서 유지 중 <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* Linux, OS X, BSD를 지원함 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* Windows는 지원하지 않으나 Microsoft에서 유지중 <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ---
 
-## Data structures
+## Data type
 
-Redis is not a plain key-value store
-Actually it is a data structures server, supproting different kind of values <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+Redis는 여러 종류의 data type을 지원함 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
 ---
 
-### 종류
+### Data type 종류
 
 * String <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 * List <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 * Set <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
-* Sorted set <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
-* Hash <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
+* Hash <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
+* Sorted set <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
+<!-- * bitmaps, hyperloglogs (String을 사용하며, 관련 명령어를 지원) <!-- .element: class="fragment fade-in" data-fragment-index="6" -->
+<!-- * geospatial data (String을 사용하며, 관련 명령어를 지원, beta) <!-- .element: class="fragment fade-in" data-fragment-index="7" -->
 
 ---
 
-### Redis Key
+### String
 
-Binary safe (문자열 뿐만 아니라 JPEG 같은 이미지도 사용가능)
-
-empty key 허용됨
-
----
-
-#### Key 사용시 주의사항
-
-* 매우 긴 Key는 나쁘다, 용량 뿐만 아니라 성능에도 영향을 줌
-* 매우 짧은 Key도 나쁘다, 키는 데이터를 설명할 수 있어야 함
-* 좋은 예: "user:1000", "comment:1234:reply.to" 또는 "comment:1234:reply-to"
-* 최대 허용 욜량: 512 MB
+* 간단한 문자열 data <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* Binary safe (문자열이 아닌 data도 저장가능) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* 최대 허용 용량: 512 MB <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ---
 
-### Redis String
-
-Key와 함께 사용할 수 있는 간단한 타입
-Memcached를 사용해 보았으면 아주 익숙하게 사용가능
-Binary safe
-
-Key가 String이기 때문에 String을 다른 String에 mapping 가능
-최대 허용 욜량: 512 MB
+### String 기본 명령어
+* GET : data를 읽음, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* SET: data를 저장, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
-### Redis String Tutorial
+### String 기본 명령어
 
-```
+``` 
 > SET mykey somevalue
 OK
+
 > GET mykey
 "somevalue"
 ```
 
 ---
 
-#### String이 Redis 기본 값이지만 추가적으로 흥미로운 COMMAND가 지원됨
+### String 추가 명령어
+
+* INCR : integer 1 증가, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* DECR : integer 1 감소, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* INCRBY : integer 값만큼 증가, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* DECRBY : integer 값만큼 감소, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+
+---
+
+### String 추가 명령어
 
 ```
 > SET counter 100
 OK
+
 > INCR counter
 (integer) 101
+
 > INCR counter
 (integer) 102
+
 > INCRBY counter 50
 (integer) 152
 ```
 
 ---
 
-#### MSET and MGET과 같은 COMMAND가 준비되어 있음
+### String 추가 명령어
 
-Latency 감소에 효과적
+* MSET : 여러 data를 동시에 저장, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* MGET : 여러 데이터를 동시에 가져옴, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+
+_Latency 감소에 효과적_ <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+
+---
+
+### String 추가 명령어
 
 ```
 > MSET a 10 b 20 c 30
 OK
+
 > MGET a b c
 1) "10"
 2) "20"
 3) "30"
 ```
 
-MGET 이 사용되면 value의 배열을 return
+_MGET 이 사용되면 value의 배열을 반환_ <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
 ---
 
-#### Altering and querying the key space
+### 공용 명령어
 
-EXISTS, DEL과 같은
-모든 타입에 대한 변경 또는 질의를 위한 COMMAND가 제공됨
+_모든 타입에 공용으로 사용되는 명령어_ <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+
+* EXISTS : 데이터 존재여부 확인, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* DEL : 여러 데이터를 동시에 가져옴, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* TYPE : 데이터 타입 확인, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
+
+---
+
+### 공용 명령어
 
 ```
 > SET mykey hello
 OK
+
 > TYPE mykey
-// TODO: 타입 확인
+string
+
 > EXISTS mykey
 (integer) 1
+
 > DEL mykey
 (integer) 1
+
 > EXISTS mykey
 (integer) 0
 ```
@@ -672,6 +691,23 @@ Bitmaps는 별도의 data type은 아니고 Redis String을 사용한다 다만 
 ## HyperLogLogs
 
 A HyperLogLog is a probablilstic data structure used in order to count unique things (technically this is refereed to estimating the cardinality of a set). Usually counting unique items requires using an amount of memory proportional to the number of items you want to count, because you need to remember the elements you have already seen in the past in order to avoid counting them multiple times.
+
+---
+
+### Key
+
+Binary safe한 데이터 (문자열 뿐만 아니라 JPEG 같은 이미지도 사용가능)
+
+empty key 허용됨
+
+---
+
+#### Key 사용시 주의사항
+
+* 매우 긴 Key는 나쁘다, 용량 뿐만 아니라 성능에도 영향을 줌
+* 매우 짧은 Key도 나쁘다, 키는 데이터를 설명할 수 있어야 함
+* 좋은 예: "user:1000", "comment:1234:reply.to" 또는 "comment:1234:reply-to"
+* 최대 허용 욜량: 512 MB
 
 ---
 
