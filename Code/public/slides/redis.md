@@ -87,7 +87,7 @@ OK
 
 ---
 
-### String 추가 명령어
+### String 추가 명령어 (1/2)
 
 * INCR : integer 1 증가, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 * DECR : integer 1 감소, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
@@ -96,7 +96,7 @@ OK
 
 ---
 
-### String 추가 명령어
+### String 추가 명령어 (1/2)
 
 ```
 > SET counter 100
@@ -114,7 +114,7 @@ OK
 
 ---
 
-### String 추가 명령어
+### String 추가 명령어 (2/2)
 
 * MSET : 여러 data를 동시에 저장, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 * MGET : 여러 데이터를 동시에 가져옴, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
@@ -123,7 +123,7 @@ _Latency 감소에 효과적_ <!-- .element: class="fragment fade-in" data-fragm
 
 ---
 
-### String 추가 명령어
+### String 추가 명령어 (2/2)
 
 ```
 > MSET a 10 b 20 c 30
@@ -170,131 +170,126 @@ string
 
 ---
 
-#### Redis Expire: keys with limited time to live
+### 공용 명령어
 
-Key에 timeout을 설정하여 일정 기간동안만 사용가능하게 설정 가능
-
----
-
-#### Redis Expire 특징
-
-* seconds, millisecons 두 종류의 정밀도 사용가능
-* On-disk persistence를 사용할 경우 Redis server가 중지되어 있던 시간은 계산되지 않음 (Redis가 유효기간이 지난 Key를 가지고 있을 수 있음)
+* EXPIRE : 만료시간 설정, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
 ---
 
-#### Redis Expire Tutorial (1/2)
+###  공용 명령어
 
 ```
 > SET key some-value
 OK
-> expire key 5
+
+> EXPIRE key 5
 (integer) 1
+
 > GET key (immediately)
 "some-value"
+
 > GET key (after sime time)
 (nil)
 ```
 
 ---
 
-#### Redis Expire Tutorial (2/2)
+### 공용 명령어
 
 ```
 > SET key 100 EX 10
 OK
+
 > TTL key
 (integer) 9
 ```
 
 ---
 
-### Redis List
+### EXPIRE 특징
 
-Redis List는 Linked List를 기반으로 구현되어 있음
-따라서 Linked List의 특성을 동일하게 가짐
-* element를 앞 또는 뒤에 추가할 경우 유리
-* index를 data에 접근할 경우 불리
+* seconds, millisecons 두 종류의 정밀도 사용 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* On-disk persistence를 사용할 경우 서버가 중지되어 있던 시간은 계산되지 않음 (Redis가 유효기간이 지난 Key를 가지고 있을 수 있음) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
-#### Redis List Tutorial (1/3)
+### List
+
+_List는 Linked List의 특징을 동일하게 가짐_ <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+
+* 데이터를 앞 또는 뒤에 추가할 경우 유리 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* index로 데이터에 접근할 경우 불리 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+
+---
+
+### List 명령어
+* LPUSH : List 왼쪽에 데이터 추가, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* LPOP : List 왼쪽의 데이터를 반환하고 삭제, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* LRANGE : List의 데이터를 반환, O(S+N) <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+    * S는 List 시작지점으로부터의 offset
+
+---
+
+
+### List 명령어
 
 ```
 > RPUSH myslist A
 (integer) 1
+
 > RPUSH mylist B
 (integer) 2
+
 > LPUSH mylist first
 (integer) 3
-> LRANGE mylist 0 - 1
+
+> LRANGE mylist 0 -1
 1) "first"
 2) "A"
 3) "B"
 ```
-
-Note that LRANGE takes two indexws, the first element of the range to return. Both the indexes can be negative, telling Redis to start counting from the end: so - 1 is the last element, -2 is the penultimate element of the list, an so forth
-
----
-
-#### Redis List Tutorial (2/3)
-
-```
-> RPUSH mylist 1 2 3 4 5 "foo bar"
-(integer) 9
-> LRANGE mylist 0 - 1
-1) "first"
-2) "A"
-3) "B"
-4) "1"
-5) "2"
-6) "3"
-7) "4"
-8) "5"
-9) "foo bar"
-```
+_LRANGE의 인자가 음수로 사용되면 마지막 인자로부터의 offset을 나타냄_ <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
 ---
 
-#### Redis List Tutorial (3/3)
+### List 명령어
 
 ```
 > RPUSH mylist a b c
 (integer) 3
+
 > RPOP mylist
 "c"
+
 > RPOP mylist
-"c"
+"b"
+
 > RPOP mylist
 "a"
+
 > RPOP mylist
 (nil)
 ```
 
 ---
 
-#### Redis List를 사용하면 좋은 경우
+### List 명령어
 
-* 유저의 마지막 행동을 알아야 할 필요가 있을 때
-* consumer-producer pattern을 사용해서 Process 간의 통신힐 때
+* LTRIM : 선택된 인덱스 범위를를 제외한 데이터 삭제, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
-* Twitter에서 최근 Twitt을 가져오기 위해 사용 중
-
----
-
-#### Capped list
-
-최근 몇 개의 element만 남기고 나머지를 list에서 제거하고 싶을 때 사용
+_최근 몇 개의 데이터만 남기고 싶을 때 사용_ <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
-#### Capped list Tutorial (1/2)
+### List 명령어
 
 ```
 > RPUSH mylist 1 2 3 4 5
 (integer) 5
+
 > LTRIM mylist 0 2
 OK
+
 > LRANGE mylist 0 -1
 1) "1"
 2) "2"
@@ -303,154 +298,61 @@ OK
 
 ---
 
-#### Capped list Tutorial (2/2)
+### List 명령어
 
-```
-LPUSH mylist elements...
-LTRIM mylist 0 999
-```
+* BLPOP : blocking으로 동작하는 LPOP, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
----
-
-#### Blocking operations on lists
-
-List의 blocking opertation을 이용해서 producer-consumer pattern을 구현할 수 있음
+_blocking을 이용해 producer-consumer pattern을 쉽게 구현_ <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
-##### producer-consumer polling을 통한 구현
-
-1. To push items into the list, producers call LPUSH
-2. To extract / process items from the list, consumers call RPOP
-3. RPOP 시점에 data가 없으면 일정시간 대기후 재요청함
-
----
-
-##### producer-consumer polling을 통한 구현의 문제점
-
-1. Redis와 Client에게 불필요한 요청을 강제함
-2. 요청 시점에 데이터가 없으면 일정시간 대기 후 재요청하는 방식이므로 요청간 딜레이가 생김
-
----
-
-##### Blocking operations on lists
-
-BRPOP, BLPOP을 사용하여 POP COMMAND를 blocking 하게 사용할 수 있음
-
----
-
-##### Blocking operations on lists Tutorial
+### List 명령어
 
 ```
 > BRPOP tasks 5
 ```
 
-element가 없어도 5초간 대기하겠음
-
-만약 timeout을 0으로 입력하면 영원히 대기함
+_데이터가 없어도 5초간 대기_ <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
 ---
 
-##### Blocking operations 특징
+### List blocking 명령어 특징
 
-* 여러 Client가 요청했을 경우 먼저 요청한 Client가 먼저 응답을 받음
-* return value에 key가 포함되어 있음
-* timeout이 되면 NULL이 반환됨
-
-RPOPLPUSH, BRPOPLPUSH 이런 친구들도 있습니다
+* 여러 Client가 요청했을 경우 먼저 요청한 Client가 먼저 응답을 받음 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* return value에 key가 포함되어 있음 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* timeout이 되면 NULL이 반환됨 <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ---
 
-### Key의 생성과 삭제의 자동화
+## Hash
 
-빈 Key에 대해 PUSH 또는 POP을 명령하면 Key가 자동으로 생성 및 삭제됨
-
-이는 List 뿐만 아니라 Set, Sorted Set, Hash에도 동일하게 적용되며 아래의 규칙을 따름
-* Element를 추가할 때 아직 target key가 없으면 해당 data type을 생성함
-* Element를 삭제할 때 data 모두 없어지면 자동으로 data type을 삭제함
-* Read-only COMMAND를 사용하거나 없는 Key에 대해 삭제 명령을 내리면 비어있는 data type에 적용한 것과 동일한 행동을 함 !!확인 필요!!
+* Redis hash는 자료구조 hash를 기반으로 구현 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* field-value pair로 구성되어 있음 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* 오브젝트를 나타내기 편하며, Hash에 저장할수 있는 인자의 수에는 제한이 없음 <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ---
 
-### Key의 생성과 삭제의 자동화 Tutorial (1/4)
+### Hash 명령어
 
-```
-> DEL mylist
-(integer) 1
-> LPUSH mylist 1 2 3
-(integer) 3
-```
----
-
-### Key의 생성과 삭제의 자동화 Tutorial (2/4)
-
-다른 타입에 대한 시도는 error를 발생시킴
-
-```
-> SET foo bar
-OK
-> LPUSH foo 1 2 3
-(error) WRONGTYPE Operation against a key holding the wrong kind of value
-> TYPE foo
-string
-```
+* HSET : Hash에 데이터를 저장, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* HGET : Hash에서 데이터를 가져옴, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* HMSET : Hash에 여러 데이터를 저장, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* HGETALL: Hash의 모든 데이터를 가져옴, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
 
 ---
 
-### Key의 생성과 삭제의 자동화 Tutorial (3/4)
-
-```
-> LPUSH mylist 1 2 3
-(integer) 3
-> EXISTS mylist
-(integer) 1
-> LPOP mylist
-"3"
-> LPOP mylist
-"2"
-> LPOP mylist
-"1"
-> EXISTS mylist
-(integer) 0
-```
-
----
-
-### Key의 생성과 삭제의 자동화 Tutorial (4/4)
-
-```
-> DEL mylist
-(integer) 0
-> LLEN mylist
-(integer) 0
-> LPOP mylist
-(nil)
-```
-
----
-
-## Redis Hash
-
-Redis hash는 당신이 생각하는 그 "hash"임
-field-value pair로 구성되어 있음
-
----
-
-### Redis Hash Tutorial 특징
-
-Redis Hash는 오브젝트를 나타내기 편하며, Hash에 저장할수 있는 인자의 수에는 제한이 없음
-
----
-
-### Redis Hash Tutorial
+### Hash 명령어
 
 ```
 > HMSET user:1000 username antirez birthyear 1977 verified 1
 OK
+
 > HGET user:1000 username
 "antirez"
+
 > HGET user:1000 birthyear
 "1977"
+
 > HGETALL user:1000
 1) "username"
 2) "antirez"
@@ -462,18 +364,28 @@ OK
 
 ---
 
-## Redis Set
+## Set
 
-정렬되지 않은 Redis String의 집합
-Set 안의 인자가 하나임을 보장함
+* 정렬되지 않은 Redis String의 집합 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* Set 안의 인자가 하나임을 보장함 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
-### Redis Set Tutorial
+### Set 명령어
+
+* SADD : Set에 데이터를 저장, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* SMEMBERS : Set에서 모든 데이터를 가져옴, O(N) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* SISMEMBER : Set의 데이터 존재유무 확인, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* SPOP: Set에서 무작위 데이터를 반환하고 지움, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
+
+---
+
+### Set 명령어
 
 ```
 > SADD myset 1 2 3
 (integer) 3
+
 > SMEMBERS myset
 1. 3
 2. 1
@@ -482,18 +394,19 @@ Set 안의 인자가 하나임을 보장함
 
 ---
 
-### Redis Set Tutorial
+### Set 명령어
 
 ```
 > SISMEMBER myset 3
 (integer) 1
+
 > SISMEMBER myset 30
 (integer) 0
 ```
 
 ---
 
-### Redis Set Tutorial
+### Set 명령어
 
 ```
 > SADD deck C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 CJ CQ CK
@@ -508,268 +421,120 @@ Set 안의 인자가 하나임을 보장함
 ### Redis Set Tutorial
 
 ```
-> SUNIONSTORE game:1:deck deck
-(integer) 52
-
-```
-
----
-
-### Redis Set Tutorial
-
-```
-> SPOP game:1:deck
+> SPOP deck
 "C6"
-> SPOP game:1:deck
+
+> SPOP deck
 "CQ"
-> SPOP game:1:deck
+
+> SPOP deck
 "D1"
-> SPOP game:1:deck
-"CJ"
-> SPOP game:1:deck
-"SJ"
 ```
 
 ---
 
-### Redis Set Tutorial
+## Sorted set
 
-```
-> SCARD game:1:deck
-(integer) 47
-```
+* Sorted set 정렬이 되어있는 Set임 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* 인자들은 score라고 불리는 부동소수점 값을 가지며 이를 기준으로 정렬됨 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
-## Redis Sorted set
+### Sorted set 명령어
 
-Sorted set 정렬이 되어있는 Set임
-인자들은 score라고 불리는 부동소수점 값을 가지며 이를 기준으로 정렬됨
-
-정렬 기준
-* A와 B의 score가 다르면 score 순으로 정렬
-* A와 B의 score가 동일하면 key string 기준으로 정렬
+* ZADD : Sorted set에 score와 데이터로 이루어진 데이터를 저장, O(log(N)) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* ZRANK: Sorted set내 데이터의 rank를 반환, O(log(N)) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* ZRANGE : 인덱스를 이용하여 score 오름차순으로 데이터 반환, O(log(N)+M) <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ---
 
-### Redis Sorted set Tutorial
+### Sorted set 명령어
 
 ```
 > ZADD hackers 1940 "Alan Kay"
 (integer) 1
+
 > ZADD hackers 1957 "Sophie Wilson"
 (integer 1)
+
 > ZADD hackers 1953 "Richard Stallman"
-(integer) 1
-> ZADD hackers 1949 "Anita Borg"
-(integer) 1
-> ZADD hackers 1965 "Yukihiro Matsumoto"
-(integer) 1
-> ZADD hackers 1914 "Hedy Lamarr"
-(integer) 1
-> ZADD hackers 1916 "Claude Shannon"
-(integer) 1
-> ZADD hackers 1969 "Linus Torvalds"
-(integer) 1
-> ZADD hackers 1912 "Alan Turing"
 (integer) 1
 ```
 
 ---
 
-### Redis Sorted set Tutorial
+### Sorted set 명령어
 
 ```
 > ZRANGE hackers 0 -1
-1) "Alan Turing"
-2) "Hedy Lamarr"
-3) "Claude Shannon"
-4) "Alan Kay"
-5) "Anita Borg"
-6) "Richard Stallman"
-7) "Sophie Wilson"
-8) "Yukihiro Matsumoto"
-9) "Linus Torvalds"
-```
-
----
-
-### Redis Sorted set Tutorial
-
-```
-> ZREVRANGE hackers 0 -1
-1) "Linus Torvalds"
-2) "Yukihiro Matsumoto"
+1) "Alan Kay"
+2) "Richard Stallman"
 3) "Sophie Wilson"
-4) "Richard Stallman"
-5) "Anita Borg"
-6) "Alan Kay"
-7) "Claude Shannon"
-8) "Hedy Lamarr"
-9) "Alan Turing"
 ```
 
 ---
 
-### Redis Sorted set Tutorial
+### Sorted set 명령어
 
 ```
-> ZRANGE hackers 0 -1 withscores
-1) "Alan Turing"
-2) "1912"
-3) "Hedy Lamarr"
-4) "1914"
-5) "Claude Shannon"
-6) "1916"
-7) "Alan Kay"
-8) "1940"
-9) "Anita Borg"
-10) "1949"
-11) "Richard Stallman"
-12) "1953"
-13) "Sophie Wilson"
-14) "1957"
-15) "Yukihiro Matsumoto"
-16) "1965"
-17) "Linus Torvalds"
-18) "1969"
+> ZRANK hackers "Richard Stallman"
+(integer) 2
 ```
 
 ---
 
-### Operating on ranges
+## Key
 
-Sorted Set은 range로 탐색이 가능이라는
-막강한 기능을 보유하고 있음
-
----
-
-### Redis Sorted set Tutorial
-
-```
-> ZRANGEBYSCORE hackers -inf 1950
-1) "Alan Turing"
-2) "Hedy Lamarr"
-3) "Claude Shannon"
-4) "Alan Kay"
-5) "Anita Borg"
-```
+* Binary safe한 데이터 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+    * (문자열 뿐만 아니라 JPEG 같은 이미지도 사용가능)
+* empty key 허용 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
-### Redis Sorted set Tutorial
+#### Key 특징
 
-```
-> ZREMRANGEBYSCORE hackers 1940 1960
-(integer) 4
-```
-
----
-
-### Redis Sorted set Tutorial
-
-```
-> ZRANK hackers "Anita Borg"
-(integer) 4
-```
+* 최대 허용 욜량: 512 MB <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* Key는 자동으로 생성 및 삭제됨 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+    * 추가할 때 아직 key가 없으면 생성
+    * 삭제할 때 데이터가 모두 없어지면 삭제
+    * Read-only 명령어를 사용하거나 없는 Key에 대해 삭제 명령을 내리면 비어있는 key에 적용한 것과 동일하게 작동
+    * 다른 타입에 대한 시도는 error를 발생
 
 ---
 
-### Redis Sorted set으로 랭킹 구현하기
+## 기타 명령어
 
-Sorted set의 score는 ZADD를 통해 언제나 수정가능함
-이런 특성으로 인해 Sorted set은 랭킹에 매우 적합함
-
----
-
-## Bitmaps
-
-Bitmaps는 별도의 data type은 아니고 Redis String을 사용한다 다만 여러 명령어를 통해 bit연산을 지원한다
-
----
-
-## HyperLogLogs
-
-A HyperLogLog is a probablilstic data structure used in order to count unique things (technically this is refereed to estimating the cardinality of a set). Usually counting unique items requires using an amount of memory proportional to the number of items you want to count, because you need to remember the elements you have already seen in the past in order to avoid counting them multiple times.
-
----
-
-### Key
-
-Binary safe한 데이터 (문자열 뿐만 아니라 JPEG 같은 이미지도 사용가능)
-
-empty key 허용됨
-
----
-
-#### Key 사용시 주의사항
-
-* 매우 긴 Key는 나쁘다, 용량 뿐만 아니라 성능에도 영향을 줌
-* 매우 짧은 Key도 나쁘다, 키는 데이터를 설명할 수 있어야 함
-* 좋은 예: "user:1000", "comment:1234:reply.to" 또는 "comment:1234:reply-to"
-* 최대 허용 욜량: 512 MB
+* Bitmaps <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+    * bit 연산을 지원하는 명령어 집합
+    * String 자료구조 사용
+* HyperLogLogs <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+    * 매우 적은 메모리로 집합의 원소 개수를 추정하기 위한 명령어 집합
+    * String 자료구조 사용
 
 ---
 
 ## Replication
 
-Redis는 쉽고 간단하게 설정할수 있는 master-slave replication을 지원함
+Master-Slave replication 지원 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
 ---
 
-## Replication 특징
+### Master-Slave replication 목적
 
-* 2.8버전부터 비동기 replication을 지원
-* master는 복수의 slave를 가질 수 있음
-* slave는 다른 slave와 통신할 수 있음
-* replication이 master의 작업을 blocking하지 않음
-* slave도 replication작업에 의해 blocking되지 않음, 하지만 최초 동기화 이후 데이터 동기화 시간에 들어온 요청을 blocking할 수 있음
-* replication은 read-only query를 사용한 scalability와 data 이중화를 위해 사용할 수 있음
-* replication을 통해 slave만 on-disk persistance를 지원하게 설정할 수 있음
+* 데이터베이스 읽기 Scale out <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* 데이터베이스 이중화 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
-### Replication은 어떻게 동작하는가?
+### Replication 특징
 
-If you set up a slave upon connection it sends a SYNC command. It doesn't matter if it's the first time it has connected or it it's a reconnection.
-
-The master then starts background saving, ans starts to buffer all new commands received that will modify the dataset. When the background saving is complete, the master transfers the database file to the slave, which saves it on disk, and then loads it into memory. The master will then send to the slave all buffered commands. This is done as a stream of commands and is in the same format of the Redis protocol itself.
-
-You can try it yourself via telnet. Connect to the Redis port while the server is doing some work and issue the SYNC command. You'll see a bulk transfer and then every command recerived by the master will be re-issued int the telnet session.
-
-Slaves are able to automatically reconnect when the master <-> slave link goes down for some reason. If the master receives multiple concurrent slave synchronization requests, if performs a single background save in order to serve all of them.
-
-When a master and a slave reconnects after the link went down, a full resync is always performed. However, starting with Redis 2.8, a partial resynchronization is also possible.
-
----
-
-### Paritial resynchronization
-
-Starting with Redis 2.8, master and slave are usually able to continue the replication process without requiring a full resynchronizatopm after replication link went down.
-
-This works by creatinf an in-memory backlog of the replication stream on the master side. Ther master and all the slaves agree on a replication offset and a master run id, so wher the link goies down, the slave will reconnect and ask the master to continer the replication. Assimong the master run id is still the same, and that the offset specified is available in the replication backlog, replication will resume from the point where it left off. If either of these conditions are unmet, a full resynchronization is performed (which is the normal pre-2.8 behavior). As the run id of the connected master is not persisted to disk, a full resynchronization is needed when the slave restarts.
-
-The new partial resynchronization feature uses the PSYNC command internally, while the old implementaion uses the SYNC command. Note that a Redis 2.8 slave is able to detect if the server it it talking with does not support PSYNC, and will use SYNC instead.
-
----
-
-### Diskless replication
-
-Normally a fulll resynchronization requires to create an RDB file on disk, then reload same RDB from disk in order to feed slaves with the data.
-
-With slow disks this can be a very stressing operation for the master. Redis version 2.8.18 will be the firest version to have experimental supprot for diskless replication. In this setup the child process directly sends the RDB over the wire to slaves, without using the disk as intermediate storage.
-
-The feature is currently considered experimental.
-
----
-
-### Read-only slave
-
-Since Redis 2.6, slaves supprot a read-only mode that is enabled by default. This behavior is controlled by the slave-read-only option in the redis.conf file, and can be enabled and disabled at runtime using CONFIG SET.
-
-Read-only slaves will reject all write commands, so that it is not possible to write to a slave because of a mistake. This does not mean that the feature is intended to expose a slave instance to the internet or more generally to a network where untrusted clients exist, because administrative commands like DEBUG or CONFIG are still enabled. However, security of read-only instances can be improved by disabling commands in redis.conf using the rename-command directive.
-
-You may wonder why it is possible to revert the read-only setting and have slave instances that can be target of write operations. While those writes will be discarded if the slave and the master resynchronize or if the slave is restarted, there are a few legitimate use case for sorting ephemeral data in writable slaves. However in the future it is possible that this feature will be dropped.
+* 2.8버전부터는 비동기 replication을 지원 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* Master는 복수의 Slave를 가질 수 있음 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* Slave는 다른 Slave를 가질 수 있음 <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* Replication이 Master의 작업을 Blocking하지 않음 <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
+* Slave도 Replication작업에 의해 Blocking되지 않음, 하지만 최초 동기화 이후 데이터 동기화 시간에 들어온 요청을 Blocking할 수 있음 <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
+* Read-only query를 사용한 Scalability와 Data 이중화를 위해 사용할 수 있음 <!-- .element: class="fragment fade-in" data-fragment-index="6" -->
+* Slave만 on-disk persistance를 지원하게 설정할 수 있음 <!-- .element: class="fragment fade-in" data-fragment-index="7" -->
 
 ---
 
