@@ -4,9 +4,15 @@
 
 ## Contents
 
+* 들어가기 전에
 * Redis?
-* Redis 주요기능
+* 주요기능
 * 활용사례
+* 주의사항
+
+---
+
+## 들어가기 전에
 
 ---
 
@@ -44,12 +50,6 @@ Open source <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ### 상황 1
 
-* 유저 정보를 가져오는 경우가 바꾸거나 추가하는 경우에 비해 충분히 많음 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-
----
-
-### 상황 2
-
 * 유저에게 공성전 정보 보여주어야 함 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 * 공성전 정보에는 점령 현황, 각 길드정보, 길드의 유저 정보등이 있음  <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 * 또 이 정보들을 조합해서 전투현황 정보를 생성함  <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
@@ -57,13 +57,20 @@ Open source <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 
 ---
 
-### 상황 3
+### 상황 2
 
 * 공성전 결과에 따른 길드랭킹을 보여주어야 함 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
 ---
 
 ## Redis 주요기능
+
+* Data type <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* Replication <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* LRU eviction <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* Transaction <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
+* On-disk persistance <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
+* Cluster <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
 
 ---
 
@@ -80,8 +87,6 @@ Redis는 여러 종류의 data type을 지원함 <!-- .element: class="fragment 
 * Set <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 * Hash <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
 * Sorted set <!-- .element: class="fragment fade-in" data-fragment-index="5" -->
-<!-- * bitmaps, hyperloglogs (String을 사용하며, 관련 명령어를 지원) <!-- .element: class="fragment fade-in" data-fragment-index="6" -->
-<!-- * geospatial data (String을 사용하며, 관련 명령어를 지원, beta) <!-- .element: class="fragment fade-in" data-fragment-index="7" -->
 
 ---
 
@@ -588,20 +593,8 @@ Master-Slave replication 지원 <!-- .element: class="fragment fade-in" data-fra
 
 ## Transaction 특징
 
-* roll back 기능을 지원하지 않음
-
----
-
-## Lua Scripting
-
-* Lua script를 통한 Transaction을 지원함
-* 
-
-A Redis script is transactional by definition, so everything you can do with a Redis transaction, you can also do with a script, and usually the script will be both simpler and faster.
-
-This duplication is due to the fact that scripting was introduced in Redis 2.6 while transactions already existed long before. However we are unlikely to remove the support for transactions in the short time because it seems semantically opportune that even without resorting to Redis scripting it is still possible to avoid race conditions, especially since the implementation complexity of Redis transactions is minimal.
-
-However it is not impossible that in a non immediate future we'll see that the whole user base is just using scripts. If this happens we may deprecate and finally remove transactions.
+* roll back 기능을 지원하지 않음 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* Lua script를 통한 Transaction도 지원함 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
@@ -684,7 +677,39 @@ B. 클러스터를 도입합시다 <!-- .element: class="fragment fade-in" data-
 
 ---
 
-## 몇가지 주의사항
+## 다시 몇가지 상황
+
+---
+
+### 상황 1
+
+* 유저에게 공성전 정보 보여주어야 함 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* 공성전 정보에는 점령 현황, 각 길드정보, 길드의 유저 정보등이 있음  <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* 또 이 정보들을 조합해서 전투현황 정보를 생성함  <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* 모든 요청마다 데이터베이스에서 정보를 가져와서 서버가 조합한다면? <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
+
+---
+
+### Redis String을 캐시로 사용
+
+* 데이터를 가져올 때 Redis에 저장해 놓고 캐시로 사용 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* 만약 데이터에 변동이 발생하면 Key를 이용해 캐시 삭제 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+
+---
+
+### 상황 2
+
+* 공성전 결과에 따른 길드랭킹을 보여주어야 함 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+
+### 해법 3
+
+_Sorted set!_ <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+
+* ZRANK: Sorted set내 데이터의 rank를 반환, O(log(N)) <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+
+---
+
+## 주의사항
 
 ---
 
@@ -696,27 +721,14 @@ B. 클러스터를 도입합시다 <!-- .element: class="fragment fade-in" data-
 
 ---
 
-## 다시 몇가지 상황
+### 하나의 서버를 두가지 용도로 사용할때 (캐시, 데이터베이스)
+
+* 왠만하면... 안하는 것이... <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* 최대 메모리 사용량을 초과하였을 때 어떤 키가 삭제될 것인가에 대한 별도의 설정이 필요함 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+    * volatile-lru, allkeys-random, volatile-random
 
 ---
 
-### 상황 1
+## 참고자료
 
-* 유저 정보를 가져오는 경우가 바꾸거나 추가하는 경우에 비해 충분히 많음 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-
----
-
-### 상황 2
-
-* 유저에게 공성전 정보 보여주어야 함 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-* 공성전 정보에는 점령 현황, 각 길드정보, 길드의 유저 정보등이 있음  <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-* 또 이 정보들을 조합해서 전투현황 정보를 생성함  <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
-* 모든 요청마다 데이터베이스에서 정보를 가져와서 서버가 조합한다면? <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
-
----
-
-### 상황 3
-
-* 공성전 결과에 따른 길드랭킹을 보여주어야 함 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-
----
+* http://redis.io
