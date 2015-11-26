@@ -26,7 +26,7 @@
 * Redis 공식 문서 번역이 대부분의 내용을 차지함 <!-- .element: class="fragment fade-in" -->
 * 모든 명령어를 설명하지 않음 <!-- .element: class="fragment fade-in" -->
 * 심화 기능을 물어보면 도망 갈 수 있음 <!-- .element: class="fragment fade-in" -->
-* 프로젝트에서 조금 사용해 봐서 쓸 줄은 암 <!-- .element: class="fragment fade-in" -->
+* 프로젝트 사용 경험은 있음 <!-- .element: class="fragment fade-in" -->
 
 ---
 
@@ -38,7 +38,7 @@
 
 * 유저에게 공성전 정보를 보여주어야 함 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 * 공성전 정보에는 현황, 길드정보, 유저정보등이 있음 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-* 또 이 정보들을 조합해서 공성전 생성  <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* 또 이 정보들을 조합해서 추가정보 생성  <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
 * 모든 요청마다 데이터베이스에서 정보를 가져와서 서버가 조합한다면? <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
 
 ---
@@ -108,23 +108,19 @@ _Redis는 key-value를 기본으로 데이터를 저장_ <!-- .element: class="f
 
 ### Redis Key 특징
 
-* Binary safe한 데이터 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+* Binary safe한 데이터 <!-- .element: class="fragment fade-in"-->
     * (문자열 뿐만 아니라 JPEG 같은 이미지도 사용가능)
-* empty key 허용 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-* 최대 허용 욜량: 512 MB <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-* Key는 자동으로 생성 및 삭제됨 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-    * 추가할 때 아직 key가 없으면 생성
-    * 삭제할 때 데이터가 모두 없어지면 삭제
-    * Read-only 명령어를 사용하거나 없는 Key에 대해 삭제 명령을 내리면 비어있는 key에 적용한 것과 동일하게 작동
-    * 다른 타입에 대한 시도는 error를 발생
+* empty key 허용 <!-- .element: class="fragment fade-in"-->
+* 최대 허용 욜량: 512 MB <!-- .element: class="fragment fade-in"-->
+* Key는 자동으로 생성 및 삭제됨 <!-- .element: class="fragment fade-in"-->
 
 ---
 
 ### Redis String
 
-* 간단한 data <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-* Binary safe (문자열이 아닌 data도 저장가능) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-* 최대 허용 용량: 512 MB <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* Binary safe한 데이터 <!-- .element: class="fragment fade-in"-->
+    * (문자열 뿐만 아니라 JPEG 같은 이미지도 사용가능)
+* 최대 허용 용량: 512 MB <!-- .element: class="fragment fade-in"-->
 
 ---
 
@@ -286,8 +282,8 @@ _List는 Linked List의 특징을 동일하게 가짐_ <!-- .element: class="fra
 * LPOP : List 왼쪽의 데이터를 반환하고 삭제, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 * LRANGE : List의 데이터를 반환, O(S+N) <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
     * S: List 시작지점으로부터의 offset
-    * N: TODO
-    * 인자 설명 _LRANGE의 인자가 음수로 사용되면 마지막 인자로부터의 offset을 나타냄_ <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+    * N: 얻어 오는 데이터의 수
+
 ---
 
 
@@ -340,7 +336,7 @@ OK
 
 * BLPOP : blocking으로 동작하는 LPOP, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
-_blocking을 이용해 producer-consumer pattern을 효과적으로 구현_ <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+_producer-consumer pattern을 효과적으로 구현가능_ <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
 ---
 
@@ -589,80 +585,66 @@ Master-Slave replication 지원 <!-- .element: class="fragment fade-in" data-fra
 
 ## On-disk persistence
 
-Redis persistence는 두가지 옵션을 제공함
+Redis persistence는 두가지 옵션을 제공함 <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ## On-disk persistence 특징
 
-* RDB: 일정 시간 간격으로 데이터의 snapshot을 만드는 방식
-* AOF: 모든 쓰기 operation을 저장해 놓았다가 서버가 재시작할 때 데이터를 새로 만드는 방식
+* RDB: 일정 시간 간격으로 데이터의 snapshot을 만드는 방식 <!-- .element: class="fragment fade-in" -->
+* AOF: 모든 쓰기 operation을 저장해 놓았다가 서버가 재시작할 때 데이터를 새로 만드는 방식 <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### RDB의 장점
 
-* RDB는 장애 복구에 유리함, 하나의 파일을 저장해 놓는 것만으로 데이터 백업이 가능
-* RDB는 Redis의 performance를 최대로 이끌어 냄
-* 서버 재시작이 빠름
+* RDB는 장애 복구에 유리함, 하나의 파일을 저장해 놓는 것만으로 데이터 백업이 가능 <!-- .element: class="fragment fade-in" -->
+* RDB는 Redis의 performance를 최대로 이끌어 냄 <!-- .element: class="fragment fade-in" -->
+* 서버 재시작이 빠름 <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### RDB의 단점
 
-* RDB는 snapshot 사이의 데이터를 보존할 수 없음
-* 만약 이 문제를 없애려고 snapshot 간격을 줄이면 performance 문제가 발생함
+* RDB는 snapshot 사이의 데이터를 보존할 수 없음 <!-- .element: class="fragment fade-in" -->
+* 만약 이 문제를 없애려고 snapshot 간격을 줄이면 performance 문제가 발생함 <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### AOF의 장점
 
-* 설정에 따라 데이터를 쿼리 단위 또는 초 단위로 보존할 수 있음
-* 모든 operation을 저장하기 때문에 이해하기 쉬운 데이터가 저장됨
+* 설정에 따라 데이터를 쿼리 단위 또는 초 단위로 보존할 수 있음 <!-- .element: class="fragment fade-in" -->
+* 모든 operation을 저장하기 때문에 이해하기 쉬운 데이터가 저장됨 <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### AOF의 단점
 
-* AOF 파일은 일반적으로 RDB 파일에 비해 큼
-* RDB 방식에 비해 실행 중 performance가 떨어짐
+* AOF 파일은 일반적으로 RDB 파일에 비해 큼 <!-- .element: class="fragment fade-in" -->
+* RDB 방식에 비해 실행 중 performance가 떨어짐 <!-- .element: class="fragment fade-in" -->
+* 서버 재시작이 느림 <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ## Redis Cluster
 
+_데이터베이스 클러스터를 지원함_ <!-- .element: class="fragment fade-in" -->
+
 ---
 
 ### Cluster란 무엇인가?
 
-여러 대의 컴퓨터를 연결하여 마치 하나의 컴퓨터처럼 사용하는 기술 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+여러 대의 컴퓨터를 연결하여 마치 하나의 컴퓨터처럼 사용하는 기술 <!-- .element: class="fragment fade-in" -->
 
 ---
 
-### 상황
+### 데이터베이스에서 Cluster란?
 
-A. 데이터베이스가 힘들어합니다 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+_일반적으로 아래와 같은 목적을 달성하기 위해 구성됨_ <!-- .element: class="fragment fade-in" -->
 
-B. 서버 스펙을 올립시다 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-
-A. 더 못 올리겠는데요 or 싼 거 여러개가 더 좋을 거 같아요 <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
-
-B. 클러스터를 도입합시다 <!-- .element: class="fragment fade-in" data-fragment-index="4" -->
-
----
-
-### Redis Cluster 101
-
-* 오늘은 간단한 설명만 합니다 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-* Redis Cluster의 분산 시스템 컨셉을 이해하는 것이 목적 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-* 진지하게 프로젝트에 적용하려한다면 정확한 작동방식 이해가 필요함 <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
-
----
-
-### Redis Cluster 제공 기능
-
-* 자동으로 여러 노드들에 데이터가 샤딩되어 저장 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-* 몇 개 노드 fail시에도 전체적인 시스템이 동작 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* 고가용성: 특정 노드에 장애가 발생해도 서비스가 지속됨 <!-- .element: class="fragment fade-in" -->
+* 병렬처리: 큰 작업을 분할하여 여러 노드에서 할 수 있음 <!-- .element: class="fragment fade-in" -->
+* 성능향상: 대규모 데이터에 대한 처리를 효율적으로 할 수 있음 <!-- .element: class="fragment fade-in" -->
 
 ---
 
@@ -701,8 +683,6 @@ B. 클러스터를 도입합시다 <!-- .element: class="fragment fade-in" data-
 ### 상황 3
 
 * 유저가 업로드한 이미지, 영상 등의 데이터를 무작위으 다른 유저들이 사용함 <!-- .element: class="fragment fade-in" -->
-
----
 
 ---
 
