@@ -400,6 +400,10 @@ OK
 
 ---
 
+## 쉬는 시간입니다
+
+---
+
 ## Redis Set
 
 * 정렬되지 않은 Redis String의 집합 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
@@ -730,3 +734,7 @@ _LTRIM을 이용해 불필요한 데이터 삭제_ <!-- .element: class="fragmen
 ## 참고자료
 
 * http://redis.io
+
+---
+
+## 질문과 답변
