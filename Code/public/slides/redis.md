@@ -51,7 +51,7 @@
 
 ### 상황 3
 
-* 유저가 업로드한 이미지, 영상 등의 데이터를 무작위으 다른 유저들이 사용함 <!-- .element: class="fragment fade-in" -->
+* 가장 최근 100개의 공성전 통계를 보여주어야 함 <!-- .element: class="fragment fade-in" -->
 
 ---
 
@@ -111,7 +111,7 @@ _Redis는 key-value를 기본으로 데이터를 저장_ <!-- .element: class="f
 * Binary safe한 데이터 <!-- .element: class="fragment fade-in"-->
     * (문자열 뿐만 아니라 JPEG 같은 이미지도 사용가능)
 * empty key 허용 <!-- .element: class="fragment fade-in"-->
-* 최대 허용 욜량: 512 MB <!-- .element: class="fragment fade-in"-->
+* 최대 허용 용량: 512 MB <!-- .element: class="fragment fade-in"-->
 * Key는 자동으로 생성 및 삭제됨 <!-- .element: class="fragment fade-in"-->
 
 ---
@@ -278,6 +278,7 @@ _List는 Linked List의 특징을 동일하게 가짐_ <!-- .element: class="fra
 ---
 
 ### Redis List 명령어 (1/3)
+
 * LPUSH : List 왼쪽에 데이터 추가, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 * LPOP : List 왼쪽의 데이터를 반환하고 삭제, O(1) <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 * LRANGE : List의 데이터를 반환, O(S+N) <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
@@ -470,7 +471,7 @@ OK
 
 ## Redis Sorted set
 
-* Sorted set 정렬이 되어있는 Set임 <!-- .element: class="fragment fade-in" -->
+* 정렬이 되어있는 Set임 <!-- .element: class="fragment fade-in" -->
 * 인자들은 score를 가지며 이를 기준으로 정렬됨 <!-- .element: class="fragment fade-in" -->
 * Skip list와 Hash table 함께 사용해서 구현 <!-- .element: class="fragment fade-in" -->
 
@@ -589,7 +590,7 @@ Redis persistence는 두가지 옵션을 제공함 <!-- .element: class="fragmen
 
 ---
 
-## On-disk persistence 특징
+## On-disk persistence
 
 * RDB: 일정 시간 간격으로 데이터의 snapshot을 만드는 방식 <!-- .element: class="fragment fade-in" -->
 * AOF: 모든 쓰기 operation을 저장해 놓았다가 서버가 재시작할 때 데이터를 새로 만드는 방식 <!-- .element: class="fragment fade-in" -->
@@ -663,8 +664,12 @@ _일반적으로 아래와 같은 목적을 달성하기 위해 구성됨_ <!-- 
 
 ### Redis String을 캐시로 사용
 
-* 데이터를 가져올 때 Redis에 저장해 놓고 캐시로 사용 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-* 만약 데이터에 변동이 발생하면 Key를 이용해 캐시 삭제 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
+* GET : data를 읽음, O(1) <!-- .element: class="fragment fade-in" -->
+* SET: data를 저장, O(1) <!-- .element: class="fragment fade-in" -->
+
+_데이터를 가져올 때 Redis에 저장해 놓고 캐시로 사용_ <!-- .element: class="fragment fade-in" -->
+
+_데이터에 변동이 발생하면 Key를 이용해 캐시 삭제_ <!-- .element: class="fragment fade-in" -->
 
 ---
 
@@ -674,15 +679,30 @@ _일반적으로 아래와 같은 목적을 달성하기 위해 구성됨_ <!-- 
 
 ---
 
-### Sorted set을 사용해
+### Redis Sorted set 사용
 
-* ZRANK: Sorted set내 데이터의 rank를 반환, O(log(N)) <!-- .element: class="fragment fade-in" data-fragment-index="3" -->
+* ZRANK: Sorted set내 데이터의 rank를 반환, O(log(N)) <!-- .element: class="fragment fade-in" -->
+
+_길드점수를 score로 Sorted set에 저장_ <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### 상황 3
 
-* 유저가 업로드한 이미지, 영상 등의 데이터를 무작위으 다른 유저들이 사용함 <!-- .element: class="fragment fade-in" -->
+* 가장 최근 100개의 공성전 통계를 보여주어야 함 <!-- .element: class="fragment fade-in" -->
+
+---
+
+### Redis List 사용
+
+* LPUSH : List 왼쪽에 데이터 추가, O(1) <!-- .element: class="fragment fade-in" -->
+* LPOP : List 왼쪽의 데이터를 반환하고 삭제, O(1) <!-- .element: class="fragment fade-in" -->
+* LRANGE : List의 데이터를 반환, O(S+N) <!-- .element: class="fragment fade-in" -->
+* LTRIM : 선택된 인덱스 범위를를 제외한 데이터 삭제, O(N) <!-- .element: class="fragment fade-in" -->
+
+_LPUSH로 데이터를 저장_ <!-- .element: class="fragment fade-in" -->
+
+_LTRIM을 이용해 불필요한 데이터 삭제_ <!-- .element: class="fragment fade-in" -->
 
 ---
 
@@ -698,11 +718,12 @@ _일반적으로 아래와 같은 목적을 달성하기 위해 구성됨_ <!-- 
 
 ---
 
-### 하나의 서버를 두가지 용도로 사용할때 (캐시, 데이터베이스, 메시지 큐 등)
+### 하나의 서버를 두가지 용도로 사용할때
+### (캐시, 데이터베이스)
 
-* 왠만하면... 안하는 것이... <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
-* 최대 메모리 사용량을 초과하였을 때 어떤 키가 삭제될 것인가에 대한 별도의 설정이 필요함 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
-    * volatile-lru, allkeys-random, volatile-random
+* 왠만하면... 안하는 것이... <!-- .element: class="fragment fade-in" -->
+* LRU eviction 설정 필요 <!-- .element: class="fragment fade-in" -->
+    * volatile-lru, allkeys-random, volatile-random 중
 
 ---
 
