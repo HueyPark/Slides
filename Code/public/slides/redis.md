@@ -11,7 +11,7 @@
 
 ---
 
-## Contents
+## 내용
 
 * 들어가기 전에
 * Redis?
@@ -57,7 +57,7 @@
 
 ## Redis?
 
-In-memory data structure store <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+In-memory data structure store (빠름) <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 
 Database, Cahce, Message broker로 사용가능 <!-- .element: class="fragment fade-in" data-fragment-index="2" -->
 
@@ -110,7 +110,7 @@ _Redis는 key-value를 기본으로 데이터를 저장_ <!-- .element: class="f
 
 * Binary safe한 데이터 <!-- .element: class="fragment fade-in"-->
     * (문자열 뿐만 아니라 JPEG 같은 이미지도 사용가능)
-* empty key 허용 <!-- .element: class="fragment fade-in"-->
+* empty 문자열 허용 <!-- .element: class="fragment fade-in"-->
 * 최대 허용 용량: 512 MB <!-- .element: class="fragment fade-in"-->
 * Key는 자동으로 생성 및 삭제됨 <!-- .element: class="fragment fade-in"-->
 
@@ -446,33 +446,6 @@ OK
 
 ---
 
-### Reids Set 명령어
-
-```
-> SADD deck C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 CJ CQ CK
-  D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 DJ DQ DK H1 H2 H3
-  H4 H5 H6 H7 H8 H9 H10 HJ HQ HK S1 S2 S3 S4 S5 S6
-  S7 S8 S9 S10 SJ SQ SK
-  (integer) 52
-```
-
----
-
-### Redis Set 명령어
-
-```
-> SPOP deck
-"C6"
-
-> SPOP deck
-"CQ"
-
-> SPOP deck
-"D1"
-```
-
----
-
 ## Redis Sorted set
 
 * 정렬이 되어있는 Set임 <!-- .element: class="fragment fade-in" -->
@@ -727,7 +700,7 @@ _LTRIM을 이용해 불필요한 데이터 삭제_ <!-- .element: class="fragmen
 
 * 왠만하면... 안하는 것이... <!-- .element: class="fragment fade-in" -->
 * LRU eviction 설정 필요 <!-- .element: class="fragment fade-in" -->
-    * volatile-lru, allkeys-random, volatile-random 중
+    * volatile-lru, volatile-random, volatile-ttl 중
 
 ---
 
