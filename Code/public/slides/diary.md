@@ -6,3 +6,8 @@ Diary
 I'm not interested with contents.
 I'm interested in technology.
 Is this state good or bad?
+
+---
+
+2015.12.06.
+I want to be a Game AI Programmer
