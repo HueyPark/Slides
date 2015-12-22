@@ -11,3 +11,8 @@ Is this state good or bad?
 
 2015.12.06.
 I want to be a Game AI Programmer
+
+---
+
+2015.12.22.
+Make sure you’re using inheritance to avoid duplicating code and to minimize complexity. 
