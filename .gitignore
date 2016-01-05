@@ -65,3 +65,6 @@ target/
 *.sln
 *.pyproj
 *.suo
+
+## Flask virtual env
+flaskenv/
