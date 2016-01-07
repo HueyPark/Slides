@@ -69,3 +69,7 @@ target/
 
 ## Flask virtual env
 flaskenv/
+
+## Custom
+app.db
+db_repository/
