@@ -86,6 +86,16 @@ def edit():
         form.about_me.data = g.user.about_me
     return render_template('edit.html', form=form)
 
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500
+
 @oid.after_login
 def after_login(resp):
     if resp.email is None or resp.email == "":
