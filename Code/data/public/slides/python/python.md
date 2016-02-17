@@ -6,3 +6,6 @@
     - app.run(debug=True)
 - WTFroms
     - CSRF
+
+# Need to know
+    - Token Based Authentication
