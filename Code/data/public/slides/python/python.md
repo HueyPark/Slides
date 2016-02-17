@@ -1,7 +1,9 @@
 # Suprise
 
 - tuple
-- flask
+- Flask
+    - Application Context
+    - Request Context
     - circular references
     - app.run(debug=True)
 - WTFroms
