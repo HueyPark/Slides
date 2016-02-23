@@ -9,6 +9,6 @@ def index():
     return 'index'
 
 
-@views.route('/slide/<markdown>')
+@views.route('/slides/<markdown>')
 def slide(markdown):
     return render_template('slide.html', markdown=markdown)
