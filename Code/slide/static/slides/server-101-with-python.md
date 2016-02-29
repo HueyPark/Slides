@@ -66,5 +66,127 @@
 
 ---
 
-## Python 장점
+## Python
+### Python is a programming language that lets you work more quickly and integrate your systems more effectively. <!-- .element: class="fragment fade-in" -->
 
+---
+
+## Python for games
+###"Python enabled us to create EVE Online, a massive multiplayer game, in record time. The EVE Online server cluster runs over 50,000 simultaneous players in a shared space simulation, most of which is created in Python. The flexibilities of Python have enabled us to quickly improve the game experience based on player feedback" <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+#### said Hilmar Veigar Petursson of CCP Games. <!-- .element: class="fragment fade-in" data-fragment-index="1" style="text-align:right;" -->
+
+---
+
+## Python 살펴보기
+
+---
+
+### C++
+
+```cpp
+int doSomething() {
+    auto a = getA();
+a.do();
+}
+```
+
+---
+
+### C++
+
+```cpp
+int doSomething() {
+    auto a = getA();
+    a.do();
+}
+```
+
+---
+
+### C++
+
+```cpp
+int doSomething()
+{
+    auto a = getA();
+    a.do();
+}
+```
+
+---
+
+### Python
+
+```python
+def do_something:
+    a = gat_a()
+    a.do()
+```
+
+---
+
+### C++
+
+```cpp
+if (x > 0 && x < 10)
+{
+    doSomething();
+}
+```
+
+---
+
+### C++
+
+```cpp
+if (0 < x && x < 10)
+{
+    doSomething();
+}
+```
+
+---
+
+### Python
+
+```python
+if 0 < x < 10:
+    do_something()
+```
+
+---
+
+## Python 첫인상
+
+- 간결하다 <!-- .element: class="fragment fade-in" -->
+- 개발 속도가 빠르다 <!-- .element: class="fragment fade-in" -->
+
+---
+
+## Hello World
+
+```python
+print('Hello World')
+```
+
+---
+
+## Flask
+
+---
+
+## PyMySQL
+
+---
+
+## SQLAlchemy
+
+---
+
+## requests
+
+---
+
+## PyJWT
+
+---
