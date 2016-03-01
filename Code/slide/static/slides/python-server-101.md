@@ -220,6 +220,79 @@ connection.close()
 
 ---
 
+### SQLAlchemy의 철학
+
+SQL databases behave less like object collections the more size and performance start to matter; object collections behave less like tables and rows the more abstraction starts to matter. SQLAlchemy aims to accommodate both of these principles.
+
+SQLAlchemy considers the database to be a relational algebra engine, not just a collection of tables. Rows can be selected from not only tables but also joins and other select statements; any of these units can be composed into a larger structure. SQLAlchemy's expression language builds on this concept from its core.
+
+SQLAlchemy is most famous for its object-relational mapper (ORM), an optional component that provides the data mapper pattern, where classes can be mapped to the database in open ended, multiple ways - allowing the object model and database schema to develop in a cleanly decoupled way from the beginning.
+
+The main goal of SQLAlchemy is to change the way you think about databases and SQL!
+
+---
+
+### ORM은 종교전쟁 진행중...
+[ORM의 사실과 오해](http://okky.kr/article/286812)
+
+---
+
+### ORM의 장점
+- 생산성이 높다
+- 데이터가 객체지향적으로 추상화된다
+- 이론적으로 데이터베이스 종류에 따른 의존성이 없어진다
+
+---
+
+### SQLAlchemy 기능소개
+- 객체 테이블 매핑
+- 테이블 생성, 삭제
+- 세션 관리, SQL 생성
+
+---
+
+### 객체 테이블 매핑
+
+```python
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'user'
+
+    user_id = Column(Integer, primary_key=True)
+    nickname = Column(String(64), unique=True)
+```
+
+---
+
+### 테이블 생성, 삭제
+
+```python
+from sqlalchemy import create_engine
+from .models import Base
+
+engine = create_engine('sqlite:///:memory:')
+Base.metadata.create_all(bind=engine)
+```
+
+---
+
+### 세션 관리, 쿼리
+
+```python
+from sqlalchemy.orm import sessionmaker
+Session = sessionmaker(bind=engine)
+session = Session()
+user = User(nickname='hueypark')
+session.add(user)
+session.commit()
+```
+
+---
+
 ## PyJWT
 ### Python library which allows you to encode and decode JSON Web Tokens (JWT) <!-- .element: class="fragment fade-in" -->
 
