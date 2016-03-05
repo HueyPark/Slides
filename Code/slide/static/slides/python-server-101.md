@@ -1,11 +1,15 @@
-# Python과 함께
-## 서버 기초
+# Python과 함께하는
+## 서버 사이드 애플리케이션
 
 ---
 
 ### 박재완
 #### jaewan.huey.park@gmail.com
 #### NextFloor 풀스택 게임 프로그래머
+
+---
+
+## 오늘 할 이야기
 
 ---
 
@@ -20,7 +24,6 @@
 - web server <!-- .element: class="fragment fade-in" -->
 - application server <!-- .element: class="fragment fade-in" -->
 - database <!-- .element: class="fragment fade-in" -->
-- domain name server <!-- .element: class="fragment fade-in" -->
 - file server <!-- .element: class="fragment fade-in" -->
 - 등등등 <!-- .element: class="fragment fade-in" -->
 
@@ -49,7 +52,13 @@
 
 ---
 
-## Application server는 무엇으로 만들 수 있는가?
+## 이런 걸 만들었습니다
+https://github.com/HueyPark/Account-Book
+
+---
+
+## Application server는
+## 무엇으로 만들 수 있는가?
 
 - Python <!-- .element: class="fragment fade-in" -->
 - Java <!-- .element: class="fragment fade-in" -->
@@ -67,13 +76,30 @@
 ---
 
 ## Python
-### Python is a programming language that lets you work more quickly and integrate your systems more effectively. <!-- .element: class="fragment fade-in" -->
+### Python is a programming language that <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+### lets you work more quickly and <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+### integrate your systems more effectively. <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+
+---
+
+## Python
+### 당신을 더 빨리 일할수 있게 하고
+### 시스템과 효과적으로 통합하게 해주는
+### 프로그래밍 언어이다
 
 ---
 
 ## Python for games
-###"Python enabled us to create EVE Online, a massive multiplayer game, in record time. The EVE Online server cluster runs over 50,000 simultaneous players in a shared space simulation, most of which is created in Python. The flexibilities of Python have enabled us to quickly improve the game experience based on player feedback" <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+### Python enabled us to create EVE Online, a massive multiplayer game, in record time. The EVE Online server cluster runs over 50,000 simultaneous players in a shared space simulation, most of which is created in Python. The flexibilities of Python have enabled us to quickly improve the game experience based on player feedback <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 #### said Hilmar Veigar Petursson of CCP Games. <!-- .element: class="fragment fade-in" data-fragment-index="1" style="text-align:right;" -->
+
+---
+
+## Python for games
+### Python은 EVE Online을 기록적인 시간에 만들 수 있게 해주었다.
+### 서버는 5만 명 이상의 가상 플레이어를 분할된 우주 공간에서 시뮬레이트했다.
+### 유연성 덕분에 피드백을 반영해 빠르게 게임의 경험을 향상시킬 수 있었다.
+#### said Hilmar Veigar Petursson of CCP Games. <!-- .element: style="text-align:right;" -->
 
 ---
 
@@ -156,13 +182,6 @@ if 0 < x < 10:
 
 ---
 
-## Python 첫인상
-
-- 간결하다 <!-- .element: class="fragment fade-in" -->
-- 개발 속도가 빠르다 <!-- .element: class="fragment fade-in" -->
-
----
-
 ## Hello World
 
 ```python
@@ -171,8 +190,88 @@ print('Hello World')
 
 ---
 
+## Python 첫인상
+- 간결하다 <!-- .element: class="fragment fade-in" -->
+
+---
+
+## PyPI
+### the Python Package Index <!-- .element: class="fragment fade-in" -->
+
+---
+
+### Repository of software
+### for the Python programming language.
+
+---
+
+### There are currently 75837 packages here.
+
+---
+
+### Python에서 관리하는 패키지 모음집
+
+---
+
+### 이런게 됩니다
+```
+pip install Flask
+pip install PyMySQL
+pip install SQLAlchemy
+pip install PyJWT
+```
+<!-- .element: class="fragment fade-in" -->
+
+---
+
 ## Flask
 ### Flask is a microframework for Python based on Werkzeug, Jinja 2 and good intentions. <!-- .element: class="fragment fade-in" -->
+
+---
+
+## 문법 하나만 더!
+
+---
+
+## decorator 패턴
+### 주어진 상황 및 용도에 따라 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+### 객체에 책임을 덧붙임 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
+
+---
+
+## decorator 패턴
+```python
+def decorater(func):
+    def wrapper():
+        print('Hello ' + func())
+
+    return wrapper
+
+
+def world():
+    return 'World'
+
+helloworld = decorater(world)
+helloworld()
+```
+
+---
+
+## decorator 패턴
+```python
+def decorater(func):
+    def wrapper():
+        print('Hello ' + func())
+
+    return wrapper
+
+
+@decorater
+def world():
+    return 'World'
+
+world()
+```
 
 ---
 
@@ -195,6 +294,7 @@ app.run()
 
 ---
 
+## PyMySQL
 ```python
 import pymysql
 
@@ -215,39 +315,33 @@ connection.close()
 
 ---
 
-## SQLAlchemy
-### SQLAlchemy is the Python SQL toolkit and Object Relational Mapper that gives application developers the full power and flexibility of SQL <!-- .element: class="fragment fade-in" -->
+### 음... 뭔가 너무 힘듭니다
 
 ---
 
-### SQLAlchemy의 철학
-
-SQL databases behave less like object collections the more size and performance start to matter; object collections behave less like tables and rows the more abstraction starts to matter. SQLAlchemy aims to accommodate both of these principles.
-
-SQLAlchemy considers the database to be a relational algebra engine, not just a collection of tables. Rows can be selected from not only tables but also joins and other select statements; any of these units can be composed into a larger structure. SQLAlchemy's expression language builds on this concept from its core.
-
-SQLAlchemy is most famous for its object-relational mapper (ORM), an optional component that provides the data mapper pattern, where classes can be mapped to the database in open ended, multiple ways - allowing the object model and database schema to develop in a cleanly decoupled way from the beginning.
-
-The main goal of SQLAlchemy is to change the way you think about databases and SQL!
+## SQLAlchemy
+### SQLAlchemy is the Python SQL toolkit <!-- .element: class="fragment fade-in" -->
+### and Object Relational Mapper <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### ORM은 종교전쟁 진행중...
-[ORM의 사실과 오해](http://okky.kr/article/286812)
+[ORM의 사실과 오해](http://okky.kr/article/286812) <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### ORM의 장점
-- 생산성이 높다
-- 데이터가 객체지향적으로 추상화된다
-- 이론적으로 데이터베이스 종류에 따른 의존성이 없어진다
+- 생산성이 높다 <!-- .element: class="fragment fade-in" -->
+- 데이터가 객체지향적으로 추상화된다 <!-- .element: class="fragment fade-in" -->
+- 이론적으로 데이터베이스 따른 의존성이 없어진다 <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### SQLAlchemy 기능소개
-- 객체 테이블 매핑
-- 테이블 생성, 삭제
-- 세션 관리, SQL 생성
+- 객체 테이블 매핑 <!-- .element: class="fragment fade-in" -->
+- 세션 관리, SQL 생성 <!-- .element: class="fragment fade-in" -->
+- 테이블 생성, 삭제 <!-- .element: class="fragment fade-in" -->
+- 더 있지만 써본것만... <!-- .element: class="fragment fade-in" -->
 
 ---
 
@@ -265,6 +359,28 @@ class User(Base):
     user_id = Column(Integer, primary_key=True)
     nickname = Column(String(64), unique=True)
 ```
+---
+
+### 세션 관리, 쿼리
+
+```python
+from sqlalchemy.orm import sessionmaker
+
+Session = sessionmaker(bind=engine)
+```
+
+---
+
+### 세션 관리, 쿼리
+
+```python
+session = Session()
+
+user = User(nickname='hueypark')
+session.add(user)
+
+session.commit()
+```
 
 ---
 
@@ -280,19 +396,6 @@ Base.metadata.create_all(bind=engine)
 
 ---
 
-### 세션 관리, 쿼리
-
-```python
-from sqlalchemy.orm import sessionmaker
-Session = sessionmaker(bind=engine)
-session = Session()
-user = User(nickname='hueypark')
-session.add(user)
-session.commit()
-```
-
----
-
 ## PyJWT
 ### Python library which allows you to encode and decode JSON Web Tokens (JWT) <!-- .element: class="fragment fade-in" -->
 
@@ -304,6 +407,7 @@ session.commit()
 ---
 
 ## Token based authentication
+### ?? <!-- .element: class="fragment fade-in" -->
 
 ---
 
@@ -325,11 +429,11 @@ session.commit()
 ---
 
 ### Session based authentication의 문제점
-- Sessions <!-- .element: class="fragment fade-in" -->
-    - 유저가 인증할 때마다 서버는 어딘가에 인증정보를 저장해야 함
-    - 많은 유저와 session을 유지해야 한다면 서버에 부하로 작용
-- Scalability <!-- .element: class="fragment fade-in" -->
-    - 만약 session 정보가 메모리에 있다면 확장에 문제를 일으킴
+- 부하 <!-- .element: class="fragment fade-in" -->
+    - 유저가 인증할 때마다 어딘가에 인증정보를 저장
+    - session을 유지하는 행위는 서버에 부하로 작용
+- 확장성 <!-- .element: class="fragment fade-in" -->
+    - session 정보가 메모리에 있다면 확장성에 문제
     - 공유되는 메모리의 한계가 서버 확장의 한계로 작용
 
 ---
@@ -350,8 +454,74 @@ session.commit()
 
 ---
 
+### Token은 세 부분으로 나누어짐
+- HEADER <!-- .element: class="fragment fade-in" -->
+- PAYLOAD <!-- .element: class="fragment fade-in" -->
+- SIGNATURE <!-- .element: class="fragment fade-in" -->
+
+---
+
+### 이렇게 생겼습니다
+#### eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+#### eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6.
+#### TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFO
+
+---
+
+### HEADER에는 암호화 알고리즘과, 타입이 base64로 인코딩
+```json
+{
+    "alg": "HS256",
+    "typ": "JWT"
+}
+```
+
+---
+
+### PAYLOAD에는 데이터를 base64로 인코딩
+```json
+{
+    "name": "John Doe",
+    "admin": true
+}
+```
+
+---
+
+### SIGNATURE에 아래 결과를 base64로 인코딩
+```
+HS256(HEADER + "." + PAYLOAD, secret)
+```
+
+---
+
 ## Token과 함께 해서 가능한 일
 
-- Stateless! Scalable! <!-- .element: class="fragment fade-in" -->
+- 서버는 상태 없음! 확장성! <!-- .element: class="fragment fade-in" -->
 - 권한의 전달 (암호 없이!) <!-- .element: class="fragment fade-in" -->
-    - 다른 이에게 권한을 전달하는 안전한 방법 (예: Facebook 글쓰기 등)
+    - Facebook 글쓰기 등
+
+---
+
+## PyJWT
+
+```python
+from jwt import encode
+
+token = encode({'userid': userid}, JWT_SECRET, algorithm=JWT_ALGORITHMS)
+```
+
+---
+
+## PyJWT
+
+```python
+from jwt import decode
+
+decoded = decode(token, JWT_SECRET, algorithms=JWT_ALGORITHMS)
+userid = decoded['userid']
+```
+
+---
+
+## Q & A
