@@ -13,6 +13,25 @@
 
 ---
 
+### 이런 걸 만들었습니다
+https://github.com/HueyPark/Account-Book
+
+---
+
+### 왜?
+- 게임은 너무 어려웠습니다 <!-- .element: class="fragment fade-in" -->
+(기획하다 아무것도 못해요 ㅠㅠ)
+
+---
+
+### 필요했던 기능
+
+- 프레임워크 <!-- .element: class="fragment fade-in" -->
+- 데이터베이스 접근 <!-- .element: class="fragment fade-in" -->
+- 인증 <!-- .element: class="fragment fade-in" -->
+
+---
+
 ## 서버란 무엇인가?
 ### 클라이언트에게 네트워크를 통해 서비스를 제공하는 컴퓨터 또는 프로그램 <!-- .element: class="fragment fade-in" data-fragment-index="1" -->
 #### -위키백과 <!-- .element: class="fragment fade-in" data-fragment-index="1" style="text-align:right;" -->
@@ -52,11 +71,6 @@
 
 ---
 
-## 이런 걸 만들었습니다
-https://github.com/HueyPark/Account-Book
-
----
-
 ## Application server는
 ## 무엇으로 만들 수 있는가?
 
@@ -70,7 +84,7 @@ https://github.com/HueyPark/Account-Book
 
 ## 왜 Python이죠?
 
-- 팀에서 쓸 거 같습니다 ;; <!-- .element: class="fragment fade-in" -->
+- 팀에서 쓸 거 같았습니다 ㅜㅜ <!-- .element: class="fragment fade-in" -->
 - 생산성이 좋은 거 같습니다 ;; <!-- .element: class="fragment fade-in" -->
 
 ---
