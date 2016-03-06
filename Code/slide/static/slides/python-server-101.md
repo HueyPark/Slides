@@ -19,14 +19,16 @@ https://github.com/HueyPark/Account-Book
 ---
 
 ### 왜?
+
+- 뭔가 만들고 싶었는데... <!-- .element: class="fragment fade-in" -->
 - 게임은 너무 어려웠습니다 <!-- .element: class="fragment fade-in" -->
-(기획하다 아무것도 못해요 ㅠㅠ)
+- 기획 Lv.0 <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### 필요했던 기능
 
-- 프레임워크 <!-- .element: class="fragment fade-in" -->
+- 웹 프레임워크 <!-- .element: class="fragment fade-in" -->
 - 데이터베이스 접근 <!-- .element: class="fragment fade-in" -->
 - 인증 <!-- .element: class="fragment fade-in" -->
 
@@ -44,7 +46,7 @@ https://github.com/HueyPark/Account-Book
 - application server <!-- .element: class="fragment fade-in" -->
 - database <!-- .element: class="fragment fade-in" -->
 - file server <!-- .element: class="fragment fade-in" -->
-- 등등등 <!-- .element: class="fragment fade-in" -->
+- 등등등... <!-- .element: class="fragment fade-in" -->
 
 ---
 
@@ -75,10 +77,11 @@ https://github.com/HueyPark/Account-Book
 ## 무엇으로 만들 수 있는가?
 
 - Python <!-- .element: class="fragment fade-in" -->
+- PHP <!-- .element: class="fragment fade-in" -->
 - Java <!-- .element: class="fragment fade-in" -->
 - Javascript <!-- .element: class="fragment fade-in" -->
 - Scala <!-- .element: class="fragment fade-in" -->
-- 등등등 <!-- .element: class="fragment fade-in" -->
+- 등등등... <!-- .element: class="fragment fade-in" -->
 
 ---
 
@@ -345,8 +348,9 @@ connection.close()
 ---
 
 ### ORM의 장점
-- 생산성이 높다 <!-- .element: class="fragment fade-in" -->
+
 - 데이터가 객체지향적으로 추상화된다 <!-- .element: class="fragment fade-in" -->
+- 생산성이 높다 <!-- .element: class="fragment fade-in" -->
 - 이론적으로 데이터베이스 따른 의존성이 없어진다 <!-- .element: class="fragment fade-in" -->
 
 ---
@@ -398,6 +402,19 @@ session.commit()
 
 ---
 
+### 세션 관리, 쿼리
+
+```python
+session = Session()
+
+user = session.query(User).filter_by(name='hueypark').one()
+session.delete(user)
+
+session.commit()
+```
+
+---
+
 ### 테이블 생성, 삭제
 
 ```python
@@ -438,13 +455,13 @@ Base.metadata.create_all(bind=engine)
 ### Session based authentication의 동작
 1. 유저 -> 서버: 로그인, 서버는 유저정보를 session에 저장 <!-- .element: class="fragment fade-in" -->
 2. 유저 <- 서버: session id <!-- .element: class="fragment fade-in" -->
-3. 유저 -> 서버: 요청에 session id를 포함, 서버는 유저정보를 확인 후 응답 <!-- .element: class="fragment fade-in" -->
+3. 유저 -> 서버: 요청에 session id를 포함, 서버는 session에서 유저정보를 확인 후 응답 <!-- .element: class="fragment fade-in" -->
 
 ---
 
 ### Session based authentication의 문제점
 - 부하 <!-- .element: class="fragment fade-in" -->
-    - 유저가 인증할 때마다 어딘가에 인증정보를 저장
+    - 유저가 인증할 때마다 서버에 인증정보를 저장
     - session을 유지하는 행위는 서버에 부하로 작용
 - 확장성 <!-- .element: class="fragment fade-in" -->
     - session 정보가 메모리에 있다면 확장성에 문제
@@ -476,9 +493,9 @@ Base.metadata.create_all(bind=engine)
 ---
 
 ### 이렇게 생겼습니다
-#### eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
-#### eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6.
-#### TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFO
+#### eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9. <!-- .element: class="fragment highlight-current-blue"-->
+#### eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6. <!-- .element: class="fragment highlight-current-blue"-->
+#### TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFO <!-- .element: class="fragment highlight-current-blue"-->
 
 ---
 
@@ -504,7 +521,7 @@ Base.metadata.create_all(bind=engine)
 
 ### SIGNATURE에 아래 결과를 base64로 인코딩
 ```
-HS256(HEADER + "." + PAYLOAD, secret)
+HS256(HEADER + "." + PAYLOAD, secretKey)
 ```
 
 ---
