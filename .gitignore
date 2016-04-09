@@ -61,7 +61,6 @@ docs/_build/
 target/
 
 ### Visual Studio 2015 ###
-*.sln
 *.pyproj
 *.suo
 .vs/
