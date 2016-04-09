@@ -1,45 +1,23 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Laravel</title>
 
-        <link href="https://fonts.googleapis.com/css?family=Lato:100" rel="stylesheet" type="text/css">
+<head>
+    <title>Slides</title>
 
-        <style>
-            html, body {
-                height: 100%;
-            }
+    <link href="libs/bootstrap/css/bootstrap.css" rel="stylesheet" />
+</head>
 
-            body {
-                margin: 0;
-                padding: 0;
-                width: 100%;
-                display: table;
-                font-weight: 100;
-                font-family: 'Lato';
-            }
+<body>
+    <script src="libs/jquery/jquery.js"></script>
+    <script src="libs/bootstrap/js/bootstrap.js"></script>
 
-            .container {
-                text-align: center;
-                display: table-cell;
-                vertical-align: middle;
-            }
-
-            .content {
-                text-align: center;
-                display: inline-block;
-            }
-
-            .title {
-                font-size: 96px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="content">
-                <div class="title">Laravel 5</div>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Slides</a>
             </div>
-        </div>
-    </body>
+        </div> <!-- /.container-fluid -->
+    </nav>
+</body>
+
 </html>
