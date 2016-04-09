@@ -11,6 +11,10 @@
     <Runtime>PHP</Runtime>
     <RuntimeVersion>7.0</RuntimeVersion>
     <WebRoot>public/</WebRoot>
+    <EnvName>PHPDev</EnvName>
+    <PHPDevHostName>localhost</PHPDevHostName>
+    <PHPDevAutoPort>true</PHPDevAutoPort>
+    <SaveServerSettingsInUserFile>true</SaveServerSettingsInUserFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <IncludeDebugInformation>true</IncludeDebugInformation>
