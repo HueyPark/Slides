@@ -71,6 +71,7 @@
     <Compile Include="resources\lang\en\pagination.php" />
     <Compile Include="resources\lang\en\passwords.php" />
     <Compile Include="resources\lang\en\validation.php" />
+    <Compile Include="resources\views\slide.blade.php" />
     <Compile Include="resources\views\errors\503.blade.php" />
     <Compile Include="resources\views\vendor\.gitkeep" />
     <Compile Include="resources\views\welcome.blade.php" />
@@ -207,6 +208,7 @@
     <Folder Include="database\seeds" />
     <Folder Include="database" />
     <Folder Include="public" />
+    <Folder Include="public\js\" />
     <Folder Include="resources\assets\sass" />
     <Folder Include="resources\assets" />
     <Folder Include="resources\lang\en" />
