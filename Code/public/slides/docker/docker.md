@@ -1,13 +1,58 @@
 # Docker
 
 ## Contents
+    - 자기소개
+     - What?
+    - Why?
+    - 실습
 
-## 왜?
-    - 쉽다
+## 자기소개
+    - 박재완
+    - jaewan.huey.park@gmail.com
+    - Python, PHP, C++
+    - Doker는 개밯환경에서만 사용
+
+## Docker란 무엇인가?
+    Docker는 사용자의 애플리케이셔의 빌드, 배포, 실행을 어디서나 돞는 오픈 플랫폼
+
+## Basic
+    - Docker Image
+    - Docker Container
+    - Docker Engine
+    - Docker Trusted Registry
+    - Machine
+    - Swarm
+    - Universal Control Plane
+    - Compose
+
+## 누가 만들지?
+    Docker Inc.
+
+## Docker Inc.
+    Containers as a Service
+        - 개발자를 위한 통합된 플랫폼
+        - 상업적은 기술지원 (Docker, IBM)
+    Docker Project Sponser
+        - 2B+ Image 다운로드, 1500+ 컨트리뷰터, 200,000+ Dockerized 애플리케이션
+
+## Docker Econsystem
+
+## Why?
     - 관리가 쉽다
     - 배포가 쉽다
     - 환경설정이 쉽다
     - 내 자리에서는 되는데요
+
+## Why?
+    - Isolation
+    - Ligthweight
+    - Simplicity
+    - Workflow
+    - Community
+
+## Docker Engine
+## Docker Hub
+
 
 ## 간단한 시식부터
     - Version control
@@ -72,7 +117,18 @@
 
 ### Easily Remediate Issues
     Docker make it easy to identify issues and isolate the problem container, quickly roll back to make the necessary changes then push the updated container into production. The isolation between containers make these changes less disruptive than traditional software models.
-    
+
+## 셀프 Q & A
+
+### Container가 정확히 무엇인가요?
+
+Containerzation은 host 운영체제의 커널을 공유하는 여러개의 root 파일 시스템을 사용합니다. 각각의 root 파일 시스템은 COntainer라고 불립니다. Conatiainer 
+
+### Image registry는 무엇인가요? Docker options에는 무엇이 있나요?
+
+Registry는 Docker Image가 안전하게 보관되는 장소입니다 
+
+## DEMO GODS PLEASE LET THIS DEMO WORK
 
 
 - Traditional virtualisation
