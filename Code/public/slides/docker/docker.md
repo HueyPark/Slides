@@ -1,16 +1,15 @@
-# Docker
-
-## Contents
-    - 자기소개
-     - What?
-    - Why?
-    - 실습
+# Docker와 함께하면 당신도 SysAdmin
 
 ## 자기소개
     - 박재완
     - jaewan.huey.park@gmail.com
     - Python, PHP, C++
-    - Doker는 개밯환경에서만 사용
+
+## Contents
+    - 자기소개
+    - 
+    - Docker
+    - 실습
 
 ## Docker란 무엇인가?
     Docker는 사용자의 애플리케이셔의 빌드, 배포, 실행을 어디서나 돞는 오픈 플랫폼
@@ -35,7 +34,7 @@
     Docker Project Sponser
         - 2B+ Image 다운로드, 1500+ 컨트리뷰터, 200,000+ Dockerized 애플리케이션
 
-## Docker Econsystem
+## Docker Ecosystem
 
 ## Why?
     - 관리가 쉽다
@@ -51,12 +50,33 @@
     - Community
 
 ## Docker Engine
+
+### Docker Image
+    Image는 읽기 전용 template
+    예를 들어 Image는 Ubuntu, Apache와 애플리케이션이 포함할 수 있다
+    Image는 Docker Container를 생성하기 위해 사용될 수 있으며
+    Docker는 쉽게 새로운 이미지를 만들고, 업데이트하고 배포할 수 있는 기능을 제공한다
+    build
+
+### Docker Registry
+    Registry는 Image를 보관하는 장소이다, public 또는 private일 수 있고, 업, 다운로드가 가능하다
+    공용 저장소는 Docker Hub에 의해 제공되며 이를 통해 사용자는 이미 만들어진 기본 이미지를 재사용할 수 있다
+    distribution
+
+### Docker Container
+    Container는 독립된 디렉토리와 비슷하다
+    애플리케이션 실행에 필요한 모든 내용을 소유하고 있으며, Image로부터 생성된다
+    각각의 Container는 독립되고 secure하다
+    run
+
+
 ## Docker Hub
+    도커 이미지를 위한 클라우드 기반의 레지스트리 서비스
+
 
 
 ## 간단한 시식부터
     - Version control
-    
     - maridaDB
     - redis
     - Jenkins
