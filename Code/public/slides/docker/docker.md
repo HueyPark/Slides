@@ -1,157 +1,158 @@
-# Docker와 함께하면 당신도 SysAdmin
+# Docker
+## 함께하면 당신도 SysAdmin
+
+---
 
 ## 자기소개
-    - 박재완
-    - jaewan.huey.park@gmail.com
-    - Python, PHP, C++
+
+- 박재완
+- jaewan.huey.park@gmail.com
+- Python, PHP, C++
+
+---
+
+## 약
+
+---
+
+### 사장님이 이제부터 젠킨스를 쓰라고 합니다.
+
+``` python
+docker run -p 8080:8080 -p 50000:50000 --name jenkins jenkins
+```
+
+---
+
+## 약 2
+
+---
+
+## 사장님이 이번에는 redmine을 쓰라고 합니다.
+
+``` python
+docker run -p 3000:3000 -d --name redmine redmine
+```
+
+---
+
+## 사장님이 이번에는...
+
+게임서버, 웹서버, 디비, 캐시, 푸시, 등등등 짬뽕으로 잘 버무려서... 부탁해 내일아침에 보자고...
+
+---
 
 ## Contents
-    - 자기소개
-    - 
-    - Docker
-    - 실습
+
+1. 새로운 기술을 도입하는 법
+2. Docker
+3. 실습
+4. Q & A
+
+---
+
+## 새로운 기술을 도입하는 법
+
+---
+
+### 1. 학습
+
+---
+
+### 2. 사용
+
+---
+
+### 3. 전파
+
+---
+
+![내전](/slides/docker/war.jpg)
+
+---
+
+## 새로운 기술을 도입하는 법
+
+1. 학습
+2. 사용
+3. 전파
+4. 내전
+
+---
+
+## 정말 새로운 기술을 도입하는 법
+
+### ???
+
+---
+
+### 사례 1.
+
+빌드는 사람이 하는 일 아닌가요?
+
+---
+
+#### 계속되는 빌드에 지친 프로그래머
+#### Jenkins라 불리는 구세주 발견
+#### 도입
+#### 평화
+
+---
+
+### 사례 2.
+
+PHP의 친구는 notepad++
+
+---
+
+#### PHP...
+#### notepad++ 과 함께 (feat. 로그)
+#### PHP Tools for Visual Studio 과 함께 breakpoint
+
+---
+
+### 사례 3.
+
+개발은 역시 서버에서!
+
+---
+
+#### 서버에 환경을 구축하고 모두가 한마음으로 ...
+#### 로컬에 환경을 구축하려면 nginx, PHP, 기타 등등 의존성 ...
+#### 성공한 자만이 로컬에서 개발할 수 있을 지어다
+#### 이 때 !
+
+---
+
+## Docker
+
+![](/slides/docker/docker_real.jpg)
+
+---
 
 ## Docker란 무엇인가?
-    Docker는 사용자의 애플리케이셔의 빌드, 배포, 실행을 어디서나 돞는 오픈 플랫폼
 
-## Basic
-    - Docker Image
-    - Docker Container
-    - Docker Engine
-    - Docker Trusted Registry
-    - Machine
-    - Swarm
-    - Universal Control Plane
-    - Compose
+---
 
-## 누가 만들지?
-    Docker Inc.
+### Docker는 사용자의 애플리케이션의
+### 빌드, 배포, 실행을 도와주는 오픈 플랫폼
 
-## Docker Inc.
-    Containers as a Service
-        - 개발자를 위한 통합된 플랫폼
-        - 상업적은 기술지원 (Docker, IBM)
-    Docker Project Sponser
-        - 2B+ Image 다운로드, 1500+ 컨트리뷰터, 200,000+ Dockerized 애플리케이션
+---
 
-## Docker Ecosystem
+### 비슷한 친구로는
+###  puppet, chef and vagrant 등이 있다고 함
 
-## Why?
-    - 관리가 쉽다
-    - 배포가 쉽다
-    - 환경설정이 쉽다
-    - 내 자리에서는 되는데요
+---
 
-## Why?
-    - Isolation
-    - Ligthweight
-    - Simplicity
-    - Workflow
-    - Community
+## 누가 주도하는가?
 
-## Docker Engine
+---
 
-### Docker Image
-    Image는 읽기 전용 template
-    예를 들어 Image는 Ubuntu, Apache와 애플리케이션이 포함할 수 있다
-    Image는 Docker Container를 생성하기 위해 사용될 수 있으며
-    Docker는 쉽게 새로운 이미지를 만들고, 업데이트하고 배포할 수 있는 기능을 제공한다
-    build
+### Docker Inc.
+### Open source community
 
-### Docker Registry
-    Registry는 Image를 보관하는 장소이다, public 또는 private일 수 있고, 업, 다운로드가 가능하다
-    공용 저장소는 Docker Hub에 의해 제공되며 이를 통해 사용자는 이미 만들어진 기본 이미지를 재사용할 수 있다
-    distribution
+---
 
-### Docker Container
-    Container는 독립된 디렉토리와 비슷하다
-    애플리케이션 실행에 필요한 모든 내용을 소유하고 있으며, Image로부터 생성된다
-    각각의 Container는 독립되고 secure하다
-    run
-
-
-## Docker Hub
-    도커 이미지를 위한 클라우드 기반의 레지스트리 서비스
-
-
-
-## 간단한 시식부터
-    - Version control
-    - maridaDB
-    - redis
-    - Jenkins
-    - nginx
-    - redmine
-
-## What is Docker?
-    Docker allows you to package an application with all of its dependencies into a standardized unit for software development.
-    Docker containers wrap up a piece of software in a complete filesystem that contains everything it needs to run: code, runtime, system tools, system libraries - anything you can install on a server. This guarantees that it will always run the same, regardless of the environment it is running in.
-
-## Lightweight
-    Containers running on a single machine all share the same opeating system kernel so they start instantly and make more efficient use of RAM. Images are constructed from layered filesystems so they can share common files, making disk usage and image downloads much more effiecient.
-
-## Open
-    Docker containers are based on open standards allowing containers to run on all major Linux distributions and Microsoft oprating systems with supprot for every infrastructure.
-
-## Secure
-    Containers isolate applications from each other and the underlying infrastructure while providing an added layer of protection for the application.
-
-## How is this different from virtual machines?
-    Containers have similar resource isolation and allocation benefits as virtual machines but a different archiectural approach allows them to be much more portable and efficient.
-
-### Virtual Machines
-    Each virtual machine includes the application, the necessary binaries and libraries and an entire guest operating system - all of which may be thens of GBs in size.
-
-### Containers
-    Containers include the application and all of its dependencies, but share the kernel with other containers. They run isolated process in userspace on the host operating system. They're also not tied to any specific infrastructure - Docker containers run on any computer, on any infrastructure and in any  cloud.
-
-## How does this help you build better software?
-    When your app is in Docker containers, you don't have to worry about setting up and maintaining different environments or different tooling for each language. Focus on creating new features, fixing issues and shipping software.
-
-### Accelerate Developre Onboarding
-    Stop wasting hours trying to setup developer envirnments, spin up new instances and make copies of production code to run locally. With Docker, you can easily take copies of your environment and run on any new endpoint running Docker.
-
-### Empower Developer Creativity
-    The isolation capabilities of Docker containers free developers from the worries of using "approved" language stacks and tooling. Developers can use the best language and tools for their application service without worrying about causing confilict issues.
-
-### Eliminate Environment Inconsistencies
-    By packaging up the application with its configs and dependencies together and shipping as a container, the application will always work as designed locally, on another machine, in test or production. No more worries about having to install the same configs into a different environment.
-
-## Easily Share and Collaborate on Applications
-    Docker creates a common framework for developers and sysadmins to work together on distributed application
-
-### Distribute and share content
-    Store, distribute and manage your Docker images in your Docker Hub with your team. Image updates, changes and history are automatically shared across your organization.
-
-### Simply share your application withe others
-    Ship one or many containers to others or downstream service teams without worrying about different environment dependencies creating issues with your application. Ohter team can easily link to or test against your app without having to learn or worry about how it works.
-
-## Ship More Software Faster
-    Docker allows you dynamically change your application like never before from adding new capabilities, scaling out services to quickly changing problem areas.
-
-### Ship 7X More
-    Docker useres on average ship software 7X more after deploying Docker in their environment. More frequent updates provide more value to your customers faster.
-
-### Quickly Scale
-    Docker containers spin up and down in seconds making it easy to scale an application service at any time to satisfy peak customer demand, then just as easily spin down those containers to only use the resources you need when you need it
-
-### Easily Remediate Issues
-    Docker make it easy to identify issues and isolate the problem container, quickly roll back to make the necessary changes then push the updated container into production. The isolation between containers make these changes less disruptive than traditional software models.
-
-## 셀프 Q & A
-
-### Container가 정확히 무엇인가요?
-
-Containerzation은 host 운영체제의 커널을 공유하는 여러개의 root 파일 시스템을 사용합니다. 각각의 root 파일 시스템은 COntainer라고 불립니다. Conatiainer 
-
-### Image registry는 무엇인가요? Docker options에는 무엇이 있나요?
-
-Registry는 Docker Image가 안전하게 보관되는 장소입니다 
 
 ## DEMO GODS PLEASE LET THIS DEMO WORK
 
-
-- Traditional virtualisation
-- Docker virtualuzation
-- Docker Images
-- Image infrastructure
+## Q & A

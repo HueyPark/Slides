@@ -11,12 +11,7 @@
 |
 */
 
-Route::get('/', function ()
-{
-    return view('welcome');
-});
-
-Route::get('/slides/{markdown}', function($markdown)
+Route::get('/{markdown}', function($markdown)
 {
     return view('slide', ['markdown' => $markdown]);
 });

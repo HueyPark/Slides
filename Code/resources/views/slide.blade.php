@@ -35,7 +35,7 @@
         <div class="slides">
             <div class="reveal">
                 <div class="slides">
-                    <section data-markdown="/slides/<?php echo $markdown; ?>.md" data-separator="---"></section>
+                    <section data-markdown="/slides/<?php echo $markdown.'/'.$markdown; ?>.md" data-separator="---"></section>
                 </div>
             </div>
         </div>
