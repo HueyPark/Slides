@@ -154,18 +154,156 @@ PHP의 친구는 notepad++
 
 ## 장점
 
-1. 쉽다
-2. 빠르다
+1. 관리가 쉽다.
+2. 배포가 쉽다.
+3. 빠르다.
+4. 풍부한 생태계가 존재한다.
+
+---
+
+## 1. 관리가 쉽다.
+
+### DockerFile을 이용해
+### 환경에 대한 이력추적이 가능하다
+
+``` DockerFile
+FROM ubuntu:14.04
+
+MAINTAINER hueypark <jaewan.huey.park@gmail.com>
+
+RUN apt-get install -y language-pack-en-base
+
+RUN apt-get install -y software-properties-common
+
+RUN LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php
+
+RUN apt-get update
+
+RUN apt-get install -y nginx
+RUN apt-get install -y php7.0-fpm
+
+ADD conf/php/php.ini /etc/php/7.0/php.ini
+ADD conf/nginx/default /etc/nginx/sites-available/default
+
+VOLUME ["/html"]
+
+EXPOSE 80
+
+ADD scripts/start.sh /start.sh
+CMD ["/start.sh"]
+```
+
+---
+
+## 2. 배포가 쉽다.
+
+### 한번 빌드한 Docker Image를 이용
+### 여러 컨테이너를 생성 가능하다
+![](/slides/docker/docker_image.jpg)
+
+---
+
+## 3. 빠르다.
+
+### 가상머신과는 다르다! 가상머신과는!
+
+---
+
+## 4. 풍부한 생태계가 존재한다.
+
+### 300,000개 이상의
+### Dockerized app이 Docker Hub에 존재함
+
+https://hub.docker.com/explore/
+
+---
+
+## 주요 기능 소개
+
+---
 
 ## Docker Image
+
+---
+
+### Image는 읽기 전용의 템플릿,
+### Container를 생성하기 위해 사용
+
+---
+
+### Docker는
+### 쉽게!
+### 이미지를 만들고!
+### 업데이트하고!
+### 배포!
+### 할 수 있는 기능을 제공
+
+---
+
+## 가상머신과는 다르다!
+## 가상머신과는!
+![](/slides/docker/image_vs_vm.jpg)
+
+---
+
+### Host OS 위에 Hypervisor를 통해
+### Guest OS를 전체설치하고
+### 가상화하는 것이 아니라
+
+---
+
+### 같은 OS에서 Docker Engine에
+### 의해 프로세스 격리
+
+---
+
+### 성능차가 거어어의 없다고 함
+
+---
+
+## 가상머신
+![](/slides/docker/vm.png)
+
+---
+
+## Docker
+![](/slides/docker/docker.png)
+
+---
 
 ## Docker Container
 
 ---
 
+### Container는 독립된 디렉토리와 비슷하다
+### 애플리케이션 실행에 필요한
+### 모든 내용을 소유하고 있으며
+### Image로부터 생성된다
+
 ---
 
-## DEMO GODS PLEASE LET THIS DEMO WORK
+![](/slides/docker/containers.jpg)
+
+---
+
+## 데모
+
+---
+
+### 순서
+
+1. ubuntu:14.04로부터 이미지를 만들고
+2. nginx 설치
+3. php 설치
+4. 설정파일 설정
+5. 80번 포트 열기
+6. 코드 복사
+7. 실행
+8. container 분신술
+
+---
+
+![](/slides/docker/demo_gods.png)
 
 ---
 
