@@ -1,58 +1,71 @@
-<?php
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
 
-/**
- * Laravel - A PHP Framework For Web Artisans
- *
- * @package  Laravel
- * @author   Taylor Otwell <taylorotwell@gmail.com>
- */
+    <title>Docker</title>
 
-/*
-|--------------------------------------------------------------------------
-| Register The Auto Loader
-|--------------------------------------------------------------------------
-|
-| Composer provides a convenient, automatically generated class loader for
-| our application. We just need to utilize it! We'll simply require it
-| into the script here so that we don't have to worry about manual
-| loading any of our classes later on. It feels nice to relax.
-|
-*/
+    <meta name="description" content="A framework for easily creating beautiful presentations using HTML" />
+    <meta name="author" content="Hakim El Hattab" />
 
-require __DIR__.'/../bootstrap/autoload.php';
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-/*
-|--------------------------------------------------------------------------
-| Turn On The Lights
-|--------------------------------------------------------------------------
-|
-| We need to illuminate PHP development, so let us turn on the lights.
-| This bootstraps the framework and gets it ready for use, then it
-| will load up this application so that we can run it and send
-| the responses back to the browser and delight our users.
-|
-*/
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
 
-$app = require_once __DIR__.'/../bootstrap/app.php';
+    <link rel="stylesheet" href="/libs/reveal.js-3.2.0/css/reveal.css" />
+    <link rel="stylesheet" href="/libs/reveal.js-3.2.0/css/theme/black.css" id="theme" />
 
-/*
-|--------------------------------------------------------------------------
-| Run The Application
-|--------------------------------------------------------------------------
-|
-| Once we have the application, we can handle the incoming request
-| through the kernel, and send the associated response back to
-| the client's browser allowing them to enjoy the creative
-| and wonderful application we have prepared for them.
-|
-*/
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="/libs/reveal.js-3.2.0/lib/css/zenburn.css" />
 
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+    <!-- Printing and PDF exports -->
+    <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? '/libs/reveal.js-3.2.0/css/print/pdf.css' : '/libs/reveal.js-3.2.0/css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+</head>
 
-$response = $kernel->handle(
-    $request = Illuminate\Http\Request::capture()
-);
+<body>
+    <div class="reveal">
+        <!-- Any section element inside of this container is displayed as a slide -->
+        <div class="slides">
+            <div class="reveal">
+                <div class="slides">
+                    <section data-markdown="/slides/docker/docker.md" data-separator="---"></section>
+                </div>
+            </div>
+        </div>
+    </div>
 
-$response->send();
+    <script src="/libs/reveal.js-3.2.0/lib/js/head.min.js"></script>
+    <script src="/libs/reveal.js-3.2.0/js/reveal.js"></script>
+    <script>
+            // Full list of configuration options available at:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
 
-$kernel->terminate($request, $response);
+                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+                // Optional reveal.js plugins
+                dependencies: [
+                    { src: '/libs/reveal.js-3.2.0/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    { src: '/libs/reveal.js-3.2.0/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: '/libs/reveal.js-3.2.0/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: '/libs/reveal.js-3.2.0/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    { src: '/libs/reveal.js-3.2.0/plugin/zoom-js/zoom.js', async: true },
+                    { src: '/libs/reveal.js-3.2.0/plugin/notes/notes.js', async: true }
+                ]
+            });
+
+    </script>
+
+</body>
+</html>

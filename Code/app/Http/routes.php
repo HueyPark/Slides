@@ -11,6 +11,11 @@
 |
 */
 
+Route::get('/', function()
+{
+    return 'Hello World';
+});
+
 Route::get('/{markdown}', function($markdown)
 {
     return view('slide', ['markdown' => $markdown]);
