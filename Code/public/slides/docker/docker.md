@@ -30,7 +30,7 @@ docker run -p 8080:8080 -p 50000:50000 --name jenkins jenkins
 ## 사장님이 이번에는 redmine을 쓰라고 합니다.
 
 ``` python
-docker run -p 3000:3000 -d --name redmine redmine
+docker run -p 3000:3000 --name redmine redmine
 ```
 
 ---
@@ -45,7 +45,7 @@ docker run -p 3000:3000 -d --name redmine redmine
 
 1. 새로운 기술을 도입하는 법
 2. Docker
-3. 실습
+3. Demo
 4. Q & A
 
 ---
@@ -79,9 +79,7 @@ docker run -p 3000:3000 -d --name redmine redmine
 
 ---
 
-## 정말 새로운 기술을 도입하는 법
-
-### ???
+## 새로운 기술을 도입하는 법 ???
 
 ---
 
@@ -92,9 +90,11 @@ docker run -p 3000:3000 -d --name redmine redmine
 ---
 
 #### 계속되는 빌드에 지친 프로그래머
+
+---
+
 #### Jenkins라 불리는 구세주 발견
-#### 도입
-#### 평화
+#### 자동화 -> 평화
 
 ---
 
@@ -105,8 +105,13 @@ PHP의 친구는 notepad++
 ---
 
 #### PHP...
-#### notepad++ 과 함께 (feat. 로그)
-#### PHP Tools for Visual Studio 과 함께 breakpoint
+#### notepad++ 과 함께 (feat. log)
+#### 참디버깅의 고통이란 이런것이다
+
+---
+
+#### PHP Tools for Visual Studio 과 함께
+#### breakpoint -> 평화
 
 ---
 
@@ -117,8 +122,14 @@ PHP의 친구는 notepad++
 ---
 
 #### 서버에 환경을 구축하고 모두가 한마음으로 ...
+
+---
+
 #### 로컬에 환경을 구축하려면 nginx, PHP, 기타 등등 의존성 ...
 #### 성공한 자만이 로컬에서 개발할 수 있을 지어다
+
+---
+
 #### 이 때 !
 
 ---
@@ -130,16 +141,17 @@ PHP의 친구는 notepad++
 ---
 
 ## Docker란 무엇인가?
+![](/slides/docker/docker_logo.png)
 
 ---
 
-### Docker는 사용자의 애플리케이션의
+### Docker는 애플리케이션의
 ### 빌드, 배포, 실행을 도와주는 오픈 플랫폼
 
 ---
 
 ### 비슷한 친구로는
-###  puppet, chef and vagrant 등이 있다고 함
+### chef, puppet and vagrant 등이 있다고 함
 
 ---
 
@@ -148,6 +160,7 @@ PHP의 친구는 notepad++
 ---
 
 ### Docker Inc.
+### +
 ### Open source community
 
 ---
@@ -171,6 +184,8 @@ FROM ubuntu:14.04
 
 MAINTAINER hueypark <jaewan.huey.park@gmail.com>
 
+RUN apt-get update
+
 RUN apt-get install -y language-pack-en-base
 
 RUN apt-get install -y software-properties-common
@@ -182,15 +197,13 @@ RUN apt-get update
 RUN apt-get install -y nginx
 RUN apt-get install -y php7.0-fpm
 
-ADD conf/php/php.ini /etc/php/7.0/php.ini
-ADD conf/nginx/default /etc/nginx/sites-available/default
+ADD Docker/conf/php.ini /etc/php/7.0/php.ini
+ADD Docker/conf/default /etc/nginx/sites-available/default
+ADD Docker/scripts/start.sh /start.sh
 
-VOLUME ["/html"]
+COPY Code/ /var/www/html/
 
 EXPOSE 80
-
-ADD scripts/start.sh /start.sh
-CMD ["/start.sh"]
 ```
 
 ---
@@ -205,7 +218,7 @@ CMD ["/start.sh"]
 
 ## 3. 빠르다.
 
-### 가상머신과는 다르다! 가상머신과는!
+### Docker Container에서 상세히 설명
 
 ---
 
@@ -231,12 +244,33 @@ https://hub.docker.com/explore/
 
 ---
 
-### Docker는
+### Docker는 이미지를
 ### 쉽게!
-### 이미지를 만들고!
+### 만들고!
 ### 업데이트하고!
 ### 배포!
 ### 할 수 있는 기능을 제공
+
+---
+
+## Docker Container
+
+---
+
+### Container는 독립된 디렉토리와 비슷하다
+
+---
+
+### 애플리케이션 실행에 필요한
+### 모든 내용을 소유하고 있으며
+
+---
+
+### Image로부터 생성된다
+
+---
+
+![](/slides/docker/containers.jpg)
 
 ---
 
@@ -271,21 +305,6 @@ https://hub.docker.com/explore/
 
 ---
 
-## Docker Container
-
----
-
-### Container는 독립된 디렉토리와 비슷하다
-### 애플리케이션 실행에 필요한
-### 모든 내용을 소유하고 있으며
-### Image로부터 생성된다
-
----
-
-![](/slides/docker/containers.jpg)
-
----
-
 ## 데모
 
 ---
@@ -296,14 +315,21 @@ https://hub.docker.com/explore/
 2. nginx 설치
 3. php 설치
 4. 설정파일 설정
-5. 80번 포트 열기
-6. 코드 복사
+5. 코드 복사
+6. 80번 포트 열기
 7. 실행
-8. container 분신술
+8. container 분신술은 다음에...
 
 ---
 
 ![](/slides/docker/demo_gods.png)
+
+---
+
+## Cheats
+
+1. docker build -t slides .
+2. docker run -p 80:80 -it --name slides slides
 
 ---
 

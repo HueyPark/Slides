@@ -17,9 +17,8 @@ RUN apt-get install -y php7.0-fpm
 
 ADD Docker/conf/php.ini /etc/php/7.0/php.ini
 ADD Docker/conf/default /etc/nginx/sites-available/default
+ADD Docker/scripts/start.sh /start.sh
+
 COPY Code/ /var/www/html/
 
 EXPOSE 80
-
-ADD Docker/scripts/start.sh /start.sh
-CMD ["/start.sh"]
